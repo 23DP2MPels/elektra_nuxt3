@@ -3,6 +3,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
+  nitro: {
+    preset: 'netlify'
+  },
+
   // Оставляем только модуль. Он сам подтянет стили и плагины Vite.
   modules: [
     'vuetify-nuxt-module'

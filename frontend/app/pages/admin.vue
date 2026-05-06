@@ -159,7 +159,7 @@ const categoriesBySlug = computed(() => {
 })
 
 const categoryOptions = computed(() => {
-  return Array.from(categoriesBySlug.entries()).map(([slug, entry]) => ({
+  return Array.from(categoriesBySlug.value.entries()).map(([slug, entry]) => ({
     category_slug: slug,
     category_name: entry.category_name,
     subcategories: entry.subcategories,

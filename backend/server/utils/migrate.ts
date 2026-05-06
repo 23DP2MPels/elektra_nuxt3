@@ -16,6 +16,7 @@ export function migrate() {
       category_name TEXT NOT NULL,
       subcategory_slug TEXT NOT NULL,
       subcategory_name TEXT NOT NULL,
+      image_url TEXT,
       specs_json TEXT NOT NULL
     );
 

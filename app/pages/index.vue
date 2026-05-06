@@ -5,6 +5,8 @@
 
     <p>
       <NuxtLink to="/search">Search</NuxtLink>
+      <span> | </span>
+      <NuxtLink to="/account">Account</NuxtLink>
     </p>
 
     <ul>

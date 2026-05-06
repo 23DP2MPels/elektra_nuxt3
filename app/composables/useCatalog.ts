@@ -14,12 +14,9 @@ export type CatalogProduct = {
   id: string
   name: string
   specs: Record<string, string | number | boolean>
-  storeSkus: Partial<Record<StoreId, string>>
 }
 
 import { generateCatalog } from '~/utils/catalogGenerator'
-
-export type StoreId = 'store-1' | 'store-2' | 'store-3' | 'store-4'
 
 const CATALOG: CatalogCategory[] = generateCatalog()
 const PRODUCT_INDEX = new Map<string, { product: CatalogProduct; category: CatalogCategory; subcategory: CatalogSubcategory }>()

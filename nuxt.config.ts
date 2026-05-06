@@ -3,6 +3,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
+  // Fix noisy dev errors from source-map WASM ("unreachable")
+  sourcemap: false,
+
   // Оставляем только модуль. Он сам подтянет стили и плагины Vite.
   modules: [
     'vuetify-nuxt-module'
@@ -18,3 +21,4 @@ export default defineNuxtConfig({
     }
   }
 })
+

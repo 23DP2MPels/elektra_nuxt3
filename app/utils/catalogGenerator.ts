@@ -1,5 +1,4 @@
 import type { CatalogCategory, CatalogProduct } from '~/composables/useCatalog'
-import type { StoreId } from '~/composables/useCatalog'
 
 type RNG = () => number
 
@@ -49,7 +48,6 @@ function makeProducts(opts: {
       id: `${prefix}-${String(i).padStart(3, '0')}`,
       name: `${baseName} ${i}`,
       specs: specFactory(i),
-      storeSkus: {},
     })
   }
   // Slightly shuffle for realism (stable with seed)
@@ -60,43 +58,6 @@ function makeProducts(opts: {
     products[j] = tmp
   }
   return products
-}
-
-function storeSku(storeId: StoreId, productId: string) {
-  return `${storeId.toUpperCase()}-${productId}`
-}
-
-function allowedStoresForCategory(categorySlug: string): StoreId[] {
-  // Default: all 4 stores (90%+ of categories).
-  // Some categories have fewer stores.
-  if (categorySlug === 'home-appliances' || categorySlug === 'kitchen-appliances') {
-    // Store-4 doesn't sell бытовую технику
-    return ['store-1', 'store-2', 'store-3']
-  }
-  if (categorySlug === 'pc-components') {
-    // Example of “2 APIs less” category (different subset)
-    return ['store-2', 'store-3']
-  }
-  if (categorySlug === 'photo-video') {
-    // Photo/video is often not in every store
-    return ['store-2', 'store-3', 'store-4']
-  }
-  if (categorySlug === 'tv-audio-video') {
-    // Example: store-3 doesn't sell TV/audio
-    return ['store-1', 'store-2', 'store-4']
-  }
-  return ['store-1', 'store-2', 'store-3', 'store-4']
-}
-
-function attachStoreSkus(categorySlug: string, products: CatalogProduct[]) {
-  const allowed = allowedStoresForCategory(categorySlug)
-  for (const p of products) {
-    const storeSkus: Partial<Record<StoreId, string>> = {}
-    for (const storeId of allowed) {
-      storeSkus[storeId] = storeSku(storeId, p.id)
-    }
-    p.storeSkus = storeSkus
-  }
 }
 
 function smartphoneSpecs(rng: RNG, kind: 'iphone' | 'android' | 'rugged'): CatalogProduct['specs'] {
@@ -1081,24 +1042,6 @@ export function generateCatalog(seed = 20260430): CatalogCategory[] {
     },
   )
 
-  // Attach store skus (category-level availability rules)
-  const categories = [
-    cat.gadgets,
-    cat.computers,
-    cat.parts,
-    cat.entertainment,
-    cat.kitchen,
-    cat.home,
-    cat.games,
-    cat.photo,
-  ]
-
-  for (const c of categories) {
-    for (const s of c.subcategories) {
-      attachStoreSkus(c.slug, s.products)
-    }
-  }
-
   // 2. Laptops & computers
   cat.computers.subcategories.push(
     {
@@ -1353,6 +1296,15 @@ export function generateCatalog(seed = 20260430): CatalogCategory[] {
     { slug: 'optics-tripods', name: 'Оптика: штативы', products: makeProducts({ rng, prefix: 'tri', baseName: 'Tripod', count: 12, specFactory: () => photoVideoSpecs(rng, 'tripod') }) },
   )
 
-  return categories
+  return [
+    cat.gadgets,
+    cat.computers,
+    cat.parts,
+    cat.entertainment,
+    cat.kitchen,
+    cat.home,
+    cat.games,
+    cat.photo,
+  ]
 }
 

@@ -17,34 +17,6 @@
         </label>
       </p>
 
-      <p>
-        <label>
-          Sort:
-          <select v-model="sortBy">
-            <option value="none">None</option>
-            <option value="price-asc">Price (low → high)</option>
-            <option value="price-desc">Price (high → low)</option>
-            <option value="name-asc">Name (A → Z)</option>
-          </select>
-        </label>
-      </p>
-
-      <div v-if="priceRange.max > 0">
-        <div><strong>Price range</strong> (min price)</div>
-        <label>
-          From:
-          <input v-model.number="priceMin" type="number" :min="priceRange.min" :max="priceRange.max" />
-        </label>
-        <span> </span>
-        <label>
-          To:
-          <input v-model.number="priceMax" type="number" :min="priceRange.min" :max="priceRange.max" />
-        </label>
-        <div>
-          Available: {{ priceRange.min }} – {{ priceRange.max }} {{ priceRange.currency }}
-        </div>
-      </div>
-
       <div v-if="facets.length">
         <div v-for="facet in facets" :key="facet.key" style="margin-bottom: 8px;">
           <template v-if="facet.kind === 'enum'">
@@ -99,11 +71,6 @@
             <NuxtLink :to="`/p/${p.id}`">
               {{ p.name }}
             </NuxtLink>
-            <template v-if="minPricesMap[p.id] != null">
-              <span> — from </span>
-              <strong>{{ minPricesMap[p.id] }}</strong>
-              <span> {{ minPriceCurrency }}</span>
-            </template>
           </li>
         </ul>
       </template>
@@ -142,50 +109,10 @@ type Facet =
   | { key: string; kind: 'number'; min: number; max: number }
 
 const localQuery = ref('')
-const sortBy = ref<'none' | 'price-asc' | 'price-desc' | 'name-asc'>('none')
 const enumFilters = reactive<Record<string, string>>({})
 const booleanFilters = reactive<Record<string, '' | 'true' | 'false'>>({})
 const numberMin = reactive<Record<string, number | null>>({})
 const numberMax = reactive<Record<string, number | null>>({})
-
-type MinPricesResponse = {
-  items: Array<{ productId: string; minPrice: number; currency: string }>
-}
-
-const { data: minPrices } = await useFetch<MinPricesResponse>(() => '/api/prices/subcategory', {
-  query: { category: categorySlug, subcategory: subcategorySlug },
-  watch: [categorySlug, subcategorySlug],
-})
-
-const minPricesMap = computed<Record<string, number | null>>(() => {
-  const out: Record<string, number | null> = {}
-  const items = minPrices.value?.items ?? []
-  for (const it of items) out[it.productId] = it.minPrice
-  return out
-})
-
-const minPriceCurrency = computed(() => (minPrices.value?.items?.[0]?.currency ?? 'EUR'))
-
-const priceRange = computed(() => {
-  const values = Object.values(minPricesMap.value).filter(v => typeof v === 'number' && Number.isFinite(v)) as number[]
-  if (!values.length) return { min: 0, max: 0, currency: minPriceCurrency.value }
-  return { min: Math.min(...values), max: Math.max(...values), currency: minPriceCurrency.value }
-})
-
-const priceMin = ref<number>(0)
-const priceMax = ref<number>(0)
-
-watch(priceRange, (r) => {
-  if (!r.max) return
-  if (!priceMin.value && !priceMax.value) {
-    priceMin.value = r.min
-    priceMax.value = r.max
-  } else {
-    // keep values within bounds
-    if (priceMin.value < r.min) priceMin.value = r.min
-    if (priceMax.value > r.max) priceMax.value = r.max
-  }
-}, { immediate: true })
 
 function toKind(value: unknown) {
   if (typeof value === 'boolean') return 'boolean'
@@ -246,7 +173,7 @@ const filteredProducts = computed(() => {
   const products = subcategory.value?.products ?? []
   const q = localQuery.value.trim().toLowerCase()
 
-  const filtered = products.filter((p) => {
+  return products.filter((p) => {
     if (q) {
       const inName = p.name.toLowerCase().includes(q)
       const inSpecs = Object.values(p.specs).some(v => String(v).toLowerCase().includes(q))
@@ -266,34 +193,16 @@ const filteredProducts = computed(() => {
           if (raw !== expected) return false
         }
       } else if (facet.kind === 'number') {
+        if (typeof raw !== 'number') return false
         const min = numberMin[facet.key]
         const max = numberMax[facet.key]
-        if (min == null && max == null) continue
-        if (typeof raw !== 'number') return false
         if (min != null && raw < min) return false
         if (max != null && raw > max) return false
       }
     }
 
-    const mp = minPricesMap.value[p.id]
-    if (typeof mp === 'number' && priceRange.value.max > 0) {
-      if (mp < priceMin.value || mp > priceMax.value) return false
-    }
-
     return true
   })
-
-  if (sortBy.value === 'name-asc') {
-    return filtered.slice().sort((a, b) => a.name.localeCompare(b.name))
-  }
-  if (sortBy.value === 'price-asc') {
-    return filtered.slice().sort((a, b) => (minPricesMap.value[a.id] ?? Number.POSITIVE_INFINITY) - (minPricesMap.value[b.id] ?? Number.POSITIVE_INFINITY))
-  }
-  if (sortBy.value === 'price-desc') {
-    return filtered.slice().sort((a, b) => (minPricesMap.value[b.id] ?? 0) - (minPricesMap.value[a.id] ?? 0))
-  }
-
-  return filtered
 })
 
 

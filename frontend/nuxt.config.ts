@@ -3,6 +3,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
+  runtimeConfig: {
+    mongodbUri: process.env.MONGODB_URI, // Nuxt сам подтянет это из .env
+  },
+
   // Fix noisy dev errors from source-map WASM ("unreachable")
   sourcemap: false,
 

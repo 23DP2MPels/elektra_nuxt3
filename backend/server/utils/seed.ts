@@ -1,4 +1,4 @@
-import { generateCatalog } from '../../../frontend/utils/catalogGenerator'
+import {  } from './catalogGenerator'
 import bcrypt from 'bcryptjs'
 import { id } from './ids'
 import { mongoDb } from './mongo'

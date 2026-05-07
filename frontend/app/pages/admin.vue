@@ -19,6 +19,17 @@
         </section>
 
         <section class="section-card">
+          <h2>Initialize Prices</h2>
+          <p>Generate prices for all products in all stores</p>
+          <p>
+            <button @click="initializeAllPrices" :disabled="initializingPrices">
+              {{ initializingPrices ? 'Initializing...' : 'Initialize All Prices' }}
+            </button>
+          </p>
+          <p v-if="initializePricesMessage" class="message">{{ initializePricesMessage }}</p>
+        </section>
+
+        <section class="section-card">
         <h2>{{ selectedProductId ? 'Edit product' : 'Add product' }}</h2>
         <form @submit.prevent="saveProduct">
           <div class="form-row">
@@ -148,6 +159,8 @@ const products = ref<Array<{ id: string; name: string; category_slug: string; ca
 const selectedProductId = ref<string | null>(null)
 const useExistingCategory = ref(true)
 const selectedCategorySlug = ref('')
+const initializingPrices = ref(false)
+const initializePricesMessage = ref('')
 const form = reactive({
   id: '',
   name: '',
@@ -228,6 +241,22 @@ async function loadAdminData() {
     error.value = String(e?.statusMessage || e?.message || 'Cannot load admin data')
   } finally {
     loading.value = false
+  }
+}
+
+async function initializeAllPrices() {
+  initializingPrices.value = true
+  initializePricesMessage.value = ''
+  try {
+    const result = await $fetch<any>('/api/admin/prices/init-all', {
+      method: 'POST',
+      credentials: 'include',
+    })
+    initializePricesMessage.value = `✓ Success! Initialized ${result.initialized_prices} prices for ${result.products_count} products across ${result.stores_count} stores.`
+  } catch (e: any) {
+    initializePricesMessage.value = `✗ Error: ${String(e?.statusMessage || e?.message || 'Failed to initialize prices')}`
+  } finally {
+    initializingPrices.value = false
   }
 }
 

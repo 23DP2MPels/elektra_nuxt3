@@ -78,6 +78,10 @@
                     <img :src="getProductImage(p)" :alt="p.name" class="product-preview" @error="onImageError" />
                   </div>
                   <h3 class="product-name">{{ p.name }}</h3>
+                  <div class="product-price-range">
+                    <strong>Цена</strong>
+                    <span>от {{ formatPrice(p.price_min) }} до {{ formatPrice(p.price_max) }}</span>
+                  </div>
                   <div class="product-specs">
                     <div v-for="[key, value] in Object.entries(p.specs ?? {}).slice(0, 3)" :key="key" class="spec-item">
                       <span class="spec-key">{{ key }}:</span>
@@ -324,6 +328,15 @@ function getProductImage(p: any) {
 function onImageError(event: Event) {
   const img = event.target as HTMLImageElement
   img.src = '/img/product_img_placeholder/default.png'
+}
+
+function formatPrice(cents: number | null | undefined, currency = 'EUR') {
+  if (cents == null || cents <= 0) return '—'
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 2
+  }).format(cents / 100)
 }
 
 const compareKey = computed(() => `compare_${categorySlug.value}`)
@@ -801,6 +814,20 @@ function facetName(key: string): string {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.product-price-range {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.product-price-range strong {
+  font-weight: 700;
+  color: #111827;
 }
 
 .product-name {

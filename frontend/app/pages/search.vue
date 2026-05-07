@@ -77,6 +77,10 @@
                     {{ result.subcategory_name }}
                   </NuxtLink>
                 </div>
+                <div class="result-price">
+                  <strong>Цена:</strong>
+                  <span>от {{ formatPrice(result.price_min) }} до {{ formatPrice(result.price_max) }}</span>
+                </div>
               </div>
               <div class="result-actions">
                 <NuxtLink :to="`/p/${result.id}`" class="view-btn">
@@ -154,6 +158,15 @@ function getResultImage(result: any) {
 function onImageError(event: Event) {
   const img = event.target as HTMLImageElement
   img.src = '/img/product_img_placeholder/default.png'
+}
+
+function formatPrice(cents: number | null | undefined, currency = 'EUR') {
+  if (cents == null || cents <= 0) return '—'
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 2
+  }).format(cents / 100)
 }
 </script>
 

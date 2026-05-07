@@ -25,10 +25,38 @@ export default defineEventHandler(async (event) => {
     query.name = { $regex: q, $options: 'i' }
   }
 
+  const pipeline: any[] = []
+  if (Object.keys(query).length) {
+    pipeline.push({ $match: query })
+  }
+
+  pipeline.push({
+    $lookup: {
+      from: 'prices',
+      localField: 'id',
+      foreignField: 'product_id',
+      as: 'prices'
+    }
+  })
+
+  pipeline.push({
+    $addFields: {
+      price_min: { $min: '$prices.store_price' },
+      price_max: { $max: '$prices.store_price' }
+    }
+  })
+
+  pipeline.push({
+    $project: {
+      prices: 0
+    }
+  })
+
+  pipeline.push({ $sort: sort })
+  pipeline.push({ $limit: limit })
+
   const products = await mongo.collection('products')
-    .find(query)
-    .sort(sort)
-    .limit(limit)
+    .aggregate(pipeline)
     .toArray()
 
   return products

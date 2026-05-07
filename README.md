@@ -1,3 +1,25 @@
+# Elektra Nuxt3
+
+## Projekta raksturojums
+
+- Frontends: Nuxt 4 / Vue 3, UI bibliotēka Vuetify 4, Vite.
+
+- Backends: Nuxt 4 servera API ar `serverDir: '../backend/server'` un Node.js.
+
+API: Servera maršruti (routes) atrodas `backend/server/api`, tiem frontends piekļūst caur `/api/....`.
+
+- Datubāzes:
+    - SQLite (`better-sqlite3`) lokāli failā `.data/app.sqlite.`
+
+    - MongoDB (`mongodb`) lietotājiem, sesijām un autentifikācijai. Konfigurācija caur `MONGODB_URI`, noklusējuma DB nosaukums `elektra_db`.
+
+- Autentifikācija: `bcryptjs` paroļu jaukšanai (hashing) un `jsonwebtoken` priekš JWT.
+
+- Konfigurācija: `dotenv` vides mainīgo (environment variables) ielādei.
+
+
+
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.

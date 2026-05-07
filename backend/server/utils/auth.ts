@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken'
 import { mongoDb } from './mongo'
 import { db } from './db'
+import 'dotenv/config'
 
 const COOKIE_NAME = 'session'
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
+const JWT_SECRET = process.env.JWT_SECRET
 const SESSION_DURATION = 30 * 24 * 60 * 60
 
 type UserDoc = {

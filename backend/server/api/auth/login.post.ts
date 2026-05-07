@@ -1,6 +1,6 @@
 import { defineEventHandler, createError, readBody, setCookie } from 'h3'
 import bcrypt from 'bcryptjs'
-import { createSession, setSessionCookie, getUserByEmail, ensureSqliteUser } from '../../utils/auth'
+import { createSession, setSessionCookie, getUserByEmail } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event).catch(() => ({}))
@@ -17,7 +17,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Invalid credentials' })
   }
 
-  await ensureSqliteUser(row)
   const session = await createSession(row.id)
   setSessionCookie(event, session.token, 30 * 24 * 60 * 60)
 

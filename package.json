@@ -7,7 +7,8 @@
     "build": "cd frontend && npx nuxt build",
     "dev": "cd frontend && npx nuxt dev --host 127.0.0.1 --port 3000",
     "generate": "cd frontend && npx nuxt generate",
-    "preview": "cd frontend && npx nuxt preview"
+    "preview": "cd frontend && npx nuxt preview",
+    "render-build": "nuxt build frontend"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

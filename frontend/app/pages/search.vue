@@ -61,6 +61,9 @@
 
           <div v-if="results.length" class="results-grid">
             <div v-for="result in results" :key="result.id" class="result-card">
+              <div class="result-image-container">
+                <img :src="getResultImage(result)" :alt="result.name" class="result-preview" @error="onImageError" />
+              </div>
               <div class="result-content">
                 <h3 class="result-title">
                   <NuxtLink :to="`/p/${result.id}`">{{ result.name }}</NuxtLink>
@@ -136,89 +139,102 @@ watchEffect(() => {
 function applySearch() {
   router.push({ path: '/search', query: q.value.trim() ? { q: q.value.trim() } : {} })
 }
+
+function getResultImage(result: any) {
+  if (result.image_url) return result.image_url
+  const subcatSlug = result.subcategory_slug || ''
+  const placeholders: Record<string, string> = {
+    'gamepads': '/img/product_img_placeholder/gamepad.png',
+    'phones': '/img/product_img_placeholder/phone.png',
+    'laptops': '/img/product_img_placeholder/laptop.png',
+  }
+  return placeholders[subcatSlug] || '/img/product_img_placeholder/default.png'
+}
+
+function onImageError(event: Event) {
+  const img = event.target as HTMLImageElement
+  img.src = '/img/product_img_placeholder/default.png'
+}
 </script>
 
 <style scoped>
 .search-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f8fafc;
 }
 
 .nav-links {
   display: flex;
   gap: 1rem;
-  padding: 1rem 2rem;
+  padding: 1rem 0;
   flex-wrap: wrap;
 }
 
 .nav-link {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px solid rgba(47, 95, 155, 0.3);
-  border-radius: 0.5rem;
-  color: #2f5f9b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1rem;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  color: #111827;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .nav-link:hover {
-  background: #2f5f9b;
-  color: #fff;
-  border-color: #2f5f9b;
+  background: #f1f5f9;
+  border-color: #94a3b8;
 }
 
 .nav-link.secondary {
-  border-color: rgba(107, 114, 128, 0.3);
-  color: #6b7280;
+  border-color: #cbd5e1;
+  color: #475569;
 }
 
 .nav-link.secondary:hover {
-  background: #6b7280;
-  color: #fff;
-  border-color: #6b7280;
+  background: #f1f5f9;
 }
 
 .hero-section {
-  padding: 3rem 2rem;
+  padding: 1.75rem 0;
   text-align: center;
 }
 
 .hero-content {
-  max-width: 800px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
 .hero-title {
-  font-size: 3rem;
+  font-size: clamp(2.2rem, 4vw, 3rem);
   font-weight: 800;
-  color: #fff;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #111827;
+  margin-bottom: 0.75rem;
 }
 
 .hero-subtitle {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  color: #475569;
   margin-bottom: 0;
 }
 
 .search-section {
-  padding: 2rem;
+  padding: 2rem 0;
 }
 
 .search-container {
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
 .search-form {
   background: #fff;
   border-radius: 1rem;
-  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.1);
-  padding: 2rem;
+  border: 1px solid #e2e8f0;
+  padding: 1.75rem;
 }
 
 .search-input-group {
@@ -229,36 +245,36 @@ function applySearch() {
 
 .search-input {
   flex: 1;
-  padding: 1rem 1.5rem;
-  border: 2px solid #e5e7eb;
+  padding: 0.95rem 1rem;
+  border: 1px solid #d1d5db;
   border-radius: 0.75rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: border-color 0.2s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #2f5f9b;
-  box-shadow: 0 0 0 3px rgba(47, 95, 155, 0.1);
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2);
 }
 
 .search-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem 2rem;
-  background: #2f5f9b;
+  padding: 0.95rem 1.5rem;
+  background: #111827;
   color: #fff;
   border: none;
   border-radius: 0.75rem;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .search-btn:hover {
-  background: #1f4770;
+  background: #1f2937;
 }
 
 .search-icon {
@@ -267,7 +283,7 @@ function applySearch() {
 }
 
 .results-section {
-  padding: 2rem;
+  padding: 2rem 0;
 }
 
 .results-container {
@@ -282,9 +298,9 @@ function applySearch() {
   text-align: center;
   background: #fff;
   border-radius: 1rem;
-  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
+  border: 1px solid #e2e8f0;
   padding: 3rem 2rem;
-  max-width: 500px;
+  max-width: 520px;
   margin: 0 auto;
 }
 
@@ -292,7 +308,7 @@ function applySearch() {
   width: 3rem;
   height: 3rem;
   border: 4px solid #e5e7eb;
-  border-top: 4px solid #2f5f9b;
+  border-top: 4px solid #111827;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -313,30 +329,30 @@ function applySearch() {
 .results-content {
   background: #fff;
   border-radius: 1rem;
-  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
+  border: 1px solid #e2e8f0;
   overflow: hidden;
 }
 
 .results-header {
   padding: 2rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f8faff;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
 .results-header h2 {
   margin: 0 0 0.5rem 0;
-  color: #1f2a43;
+  color: #111827;
   font-size: 1.8rem;
 }
 
 .results-count {
   margin: 0;
-  color: #6b7280;
+  color: #475569;
   font-size: 1rem;
 }
 
 .results-count strong {
-  color: #2f5f9b;
+  color: #111827;
   font-weight: 700;
 }
 
@@ -350,20 +366,40 @@ function applySearch() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   padding: 1.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background: #f8faff;
-  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .result-card:hover {
-  border-color: #2f5f9b;
-  box-shadow: 0 4px 12px rgba(47, 95, 155, 0.1);
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.result-image-container {
+  width: 120px;
+  height: 120px;
+  background: #f8fafc;
+  border-radius: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.result-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .result-content {
   flex: 1;
+  min-width: 0;
 }
 
 .result-title {
@@ -372,14 +408,14 @@ function applySearch() {
 }
 
 .result-title a {
-  color: #1f2a43;
+  color: #111827;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
 }
 
 .result-title a:hover {
-  color: #2f5f9b;
+  color: #1f2937;
 }
 
 .result-category {
@@ -391,7 +427,7 @@ function applySearch() {
 
 .category-link,
 .subcategory-link {
-  color: #0369a1;
+  color: #2563eb;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
@@ -399,7 +435,7 @@ function applySearch() {
 
 .category-link:hover,
 .subcategory-link:hover {
-  color: #0284c7;
+  color: #1d4ed8;
 }
 
 .category-separator {
@@ -413,16 +449,16 @@ function applySearch() {
 .view-btn {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: #2f5f9b;
+  background: #111827;
   color: #fff;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   text-decoration: none;
   font-weight: 600;
   transition: background 0.2s ease;
 }
 
 .view-btn:hover {
-  background: #1f4770;
+  background: #1f2937;
 }
 
 @media (max-width: 768px) {
@@ -442,12 +478,11 @@ function applySearch() {
   .result-card {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
   }
 
   .result-actions {
     margin-left: 0;
-    align-self: stretch;
+    width: 100%;
   }
 
   .view-btn {

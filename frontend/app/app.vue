@@ -19,8 +19,12 @@ const handleClick = () => {
 :root {
   color-scheme: light;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #eef4fb;
+  background: #f8fafc;
   color: #111827;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 html, body, #__nuxt {
@@ -30,23 +34,24 @@ html, body, #__nuxt {
 body {
   margin: 0;
   padding: 0;
-  background: linear-gradient(180deg, #f7faff 0%, #eef4fb 45%, #dde8f6 100%);
+  background: #f8fafc;
   color: #111827;
 }
 
 main {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 3rem;
+  width: 100%;
+  margin: 0;
+  padding: 2.5rem 1.5rem 3rem;
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4, h5, h6 {
   font-family: 'Inter', sans-serif;
-  color: #1f2a43;
+  color: #111827;
+  margin: 0;
 }
 
 a {
-  color: #2550b5;
+  color: #1f2937;
   text-decoration: none;
 }
 
@@ -63,7 +68,7 @@ button {
 }
 
 input, select, textarea {
-  border: 1px solid #cbd5e1;
+  border: 1px solid #d1d5db;
 }
 
 ul {

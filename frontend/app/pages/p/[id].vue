@@ -22,13 +22,22 @@
     <template v-if="product">
       <div class="product-layout">
         <div class="product-main">
-          <div class="product-header">
-            <h1>{{ product.name }}</h1>
-            <div class="product-meta">
-              <span class="category-badge">{{ product.category_name }}</span>
-              <span class="subcategory-badge">{{ product.subcategory_name }}</span>
-            </div>
+          <div class="product-image-card">
+        <img :src="imageUrl" :alt="product.name" class="product-image" @error="onImageError" />
+        <div class="brand-row">
+          <div class="brand-badge">
+            <img src="/img/logo-electra.png" alt="Elektra" class="brand-logo" />
+            <span>Электра</span>
           </div>
+        </div>
+      </div>
+      <div class="product-header">
+        <h1>{{ product.name }}</h1>
+        <div class="product-meta">
+          <span class="category-badge">{{ product.category_name }}</span>
+          <span class="subcategory-badge">{{ product.subcategory_name }}</span>
+        </div>
+      </div>
 
           <div class="product-content">
             <section class="specs-section">
@@ -53,6 +62,7 @@
                 </span>
               </div>
             </section>
+
           </div>
         </div>
 
@@ -70,6 +80,7 @@
             <div v-else class="prices-list">
               <div v-for="p in prices" :key="p.storeId" class="price-item" :class="{ ok: p.ok, error: !p.ok }">
                 <div class="price-header">
+                  <img :src="storeLogos[p.storeId] || defaultStoreLogo" :alt="p.storeName" class="store-logo" />
                   <strong>{{ p.storeName }}</strong>
                   <span class="external-id">(ID: {{ p.externalId }})</span>
                 </div>
@@ -77,9 +88,12 @@
                   {{ formatPrice(p.priceCents, p.currency) }}
                 </div>
                 <div class="price-meta">
+                  <span v-if="p.oldPriceCents !== null" class="old-price">
+                    Прошлая цена: {{ formatPrice(p.oldPriceCents, p.currency) }}
+                  </span>
                   <span v-if="p.error" class="price-error">Ошибка: {{ p.error }}</span>
                   <span v-if="p.fetchedAt" class="price-date">
-                    Обновлено: {{ new Date(p.fetchedAt).toLocaleString('ru-RU') }}
+                    Обновлено: {{ formatDate(p.fetchedAt) }}
                   </span>
                 </div>
               </div>
@@ -96,10 +110,60 @@
         <NuxtLink to="/" class="back-link">Вернуться на главную</NuxtLink>
       </div>
     </template>
+
+    <div v-if="compareList.length" class="compare-tray">
+      <div class="compare-items">
+        <div v-for="item in compareList" :key="item.id" class="compare-item">
+          <img :src="item.image_url || getDefaultImage(item.subcategory_slug || '')" :alt="item.name" />
+        </div>
+        <span class="compare-summary">Выбрано {{ compareList.length }} из {{ compareCountLimit }}</span>
+      </div>
+      <div class="compare-actions">
+        <button class="compare-open-btn" @click="openCompareModal" :disabled="compareList.length < 2">
+          Сравнить выбранное
+        </button>
+        <button class="compare-clear-btn" @click="clearCompare">Очистить</button>
+      </div>
+      <p v-if="compareError" class="compare-error">{{ compareError }}</p>
+    </div>
+
+    <div v-if="compareModalOpen" class="compare-modal-backdrop" @click.self="closeCompareModal">
+      <div class="compare-modal">
+        <div class="compare-modal-header">
+          <h2>Сравнение товаров</h2>
+          <button class="close-modal" @click="closeCompareModal">×</button>
+        </div>
+        <div class="compare-modal-thumbs">
+          <div v-for="item in compareList" :key="item.id" class="compare-modal-thumb">
+            <img :src="item.image_url || getDefaultImage(item.subcategory_slug || '')" :alt="item.name" />
+            <span>{{ item.name }}</span>
+          </div>
+        </div>
+        <div class="compare-table-container">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Характеристика</th>
+                <th v-for="item in compareList" :key="item.id">{{ item.name }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="spec of allCompareSpecs" :key="spec">
+                <td class="spec-key">{{ facetName(spec) }}</td>
+                <td v-for="item in compareList" :key="item.id" class="spec-value">
+                  {{ item.specs?.[spec] ?? '—' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watchEffect } from 'vue'
 const route = useRoute()
 const productId = computed(() => String(route.params.id || ''))
 
@@ -116,15 +180,97 @@ type PriceItem = {
   externalId: string
   currency: string
   priceCents: number
+  oldPriceCents: number | null
   fetchedAt: number
   ok: boolean
   error: string | null
 }
 
+// Prices state
 const pricesLoading = ref(false)
 const refreshing = ref(false)
 const refreshError = ref('')
 const prices = ref<PriceItem[]>([])
+
+const defaultProductImage = '/img/product_img_placeholder/gamepad.png'
+const defaultStoreLogo = '/img/store_logos/store-default.png'
+const storeLogos = {
+  'store-a': '/img/store_logos/store-a.png',
+  'store-b': '/img/store_logos/store-b.png',
+  'store-c': '/img/store_logos/store-c.png',
+}
+
+const getDefaultImage = (subcategorySlug: string) => {
+  const placeholders: Record<string, string> = {
+    'gamepads': '/img/product_img_placeholder/gamepad.png',
+    'phones': '/img/product_img_placeholder/phone.png',
+    'laptops': '/img/product_img_placeholder/laptop.png',
+    // add more as needed
+  }
+  return placeholders[subcategorySlug] || '/img/product_img_placeholder/default.png'
+}
+
+const imageUrl = computed(() => {
+  return (product.value as any)?.image_url || getDefaultImage((product.value as any)?.subcategory_slug || '')
+})
+
+const compareKey = computed(() => product.value ? `compare_${product.value.category_slug}` : '')
+
+const compareCountLimit = 5
+const compareList = ref<any[]>([])
+const compareModalOpen = ref(false)
+const compareError = ref('')
+
+function loadCompare() {
+  if (!compareKey.value) return
+  const stored = localStorage.getItem(compareKey.value)
+  if (stored) {
+    try {
+      compareList.value = JSON.parse(stored).slice(0, compareCountLimit)
+    } catch {
+      compareList.value = []
+    }
+  }
+}
+
+watchEffect(() => {
+  if (compareKey.value) {
+    loadCompare()
+  }
+})
+
+const allCompareSpecs = computed(() => {
+  const specs = new Set<string>()
+  compareList.value.forEach((item) => {
+    Object.keys(item.specs ?? {}).forEach((key) => specs.add(key))
+  })
+  return Array.from(specs).sort()
+})
+
+function openCompareModal() {
+  if (compareList.value.length < 2) {
+    compareError.value = 'Выберите минимум два товара для сравнения.'
+    return
+  }
+  compareError.value = ''
+  compareModalOpen.value = true
+}
+
+function closeCompareModal() {
+  compareModalOpen.value = false
+}
+
+function clearCompare() {
+  compareList.value = []
+  compareError.value = ''
+  if (compareKey.value) {
+    localStorage.removeItem(compareKey.value)
+  }
+}
+
+onMounted(() => {
+  loadCompare()
+})
 
 async function loadPrices() {
   if (!productId.value) return
@@ -140,6 +286,15 @@ async function loadPrices() {
 function formatPrice(cents: number, currency: string) {
   if (!cents) return `— ${currency}`
   return `${(cents / 100).toFixed(2)} ${currency}`
+}
+
+function formatDate(timestamp: number | string) {
+  if (!timestamp) return '—'
+  try {
+    return new Date(timestamp).toLocaleString('ru-RU')
+  } catch {
+    return '—'
+  }
 }
 
 async function refreshPrices() {
@@ -193,6 +348,25 @@ async function toggleFavorite() {
 
 await loadPrices()
 await loadFavoriteState()
+
+const facetNameMap: Record<string, string> = {
+  battery_hours: 'Время работы батареи (ч)',
+  battery_mah: 'Батарея (мАч)',
+  battery_wh: 'Батарея (Втч)',
+  screen_inch: 'Диагональ экрана (дюйм)',
+  ram_gb: 'Оперативная память (ГБ)',
+  storage_gb: 'Хранение (ГБ)',
+  weight_g: 'Вес (г)',
+  weight_kg: 'Вес (кг)',
+  power_w: 'Мощность (Вт)',
+  resolution: 'Разрешение',
+  refresh_hz: 'Частота обновления (Гц)',
+  // Добавьте другие по необходимости
+}
+
+function facetName(key: string): string {
+  return facetNameMap[key] || key
+}
 </script>
 
 <style scoped>
@@ -367,6 +541,171 @@ await loadFavoriteState()
   color: #dc2626;
 }
 
+.compare-tray {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(15, 23, 42, 0.95);
+  color: #fff;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.compare-items {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow-x: auto;
+}
+
+.compare-item {
+  width: 64px;
+  height: 64px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.compare-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.compare-summary {
+  min-width: 170px;
+  font-weight: 600;
+}
+
+.compare-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.compare-open-btn,
+.compare-clear-btn {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.compare-open-btn {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.compare-open-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.compare-clear-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+}
+
+.compare-error {
+  color: #fca5a5;
+  margin-top: 0.5rem;
+}
+
+.compare-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 1rem;
+}
+
+.compare-modal {
+  width: min(1200px, 100%);
+  max-height: min(90vh, 100%);
+  overflow: auto;
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.compare-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.close-modal {
+  border: none;
+  background: transparent;
+  color: #111827;
+  font-size: 1.75rem;
+  cursor: pointer;
+}
+
+.compare-modal-thumbs {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.compare-modal-thumb {
+  width: 110px;
+  text-align: center;
+}
+
+.compare-modal-thumb img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.compare-table-container {
+  overflow-x: auto;
+}
+
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.compare-table th,
+.compare-table td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.compare-table th {
+  background: #f8fafc;
+}
+
+.compare-table .spec-key {
+  font-weight: 700;
+}
+
+.compare-table .spec-value {
+  color: #475569;
+}
+
 .product-sidebar {
   position: sticky;
   top: 2rem;
@@ -474,6 +813,83 @@ await loadFavoriteState()
 
 .price-date {
   color: #64748b;
+}
+
+.product-image-card {
+  display: grid;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.product-image {
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 1rem;
+  object-fit: cover;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.brand-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.brand-logo,
+.store-logo {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+}
+
+.price-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.price-header strong {
+  color: #1f2a43;
+}
+
+.store-logo {
+  margin-right: 0.75rem;
+}
+
+.price-header strong,
+.price-header .external-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.price-meta {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.old-price {
+  color: #7c3aed;
+  font-weight: 600;
 }
 
 .error-card {

@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
   const categoryName = String(body?.category_name || '').trim()
   const subcategorySlug = String(body?.subcategory_slug || '').trim()
   const subcategoryName = String(body?.subcategory_name || '').trim()
+  const imageUrl = String(body?.image_url || '').trim()
   const specsJson = String(body?.specs_json || '{}')
 
   if (!name || !categorySlug || !categoryName || !subcategorySlug || !subcategoryName) {
@@ -41,11 +42,24 @@ export default defineEventHandler(async (event) => {
         category_name: categoryName,
         subcategory_slug: subcategorySlug,
         subcategory_name: subcategoryName,
+        image_url: imageUrl,
         specs_json: JSON.stringify(specs),
       }
     },
     { upsert: true }
   )
 
-  return { ok: true, product: { id: productId, name, category_slug: categorySlug, category_name: categoryName, subcategory_slug: subcategorySlug, subcategory_name: subcategoryName, specs_json: JSON.stringify(specs) } }
+  return {
+    ok: true,
+    product: {
+      id: productId,
+      name,
+      category_slug: categorySlug,
+      category_name: categoryName,
+      subcategory_slug: subcategorySlug,
+      subcategory_name: subcategoryName,
+      image_url: imageUrl,
+      specs_json: JSON.stringify(specs),
+    }
+  }
 })

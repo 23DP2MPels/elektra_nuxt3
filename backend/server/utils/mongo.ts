@@ -27,8 +27,25 @@ async function connectMongo() {
   await _client.connect()
   _db = _client.db(MONGODB_DB)
 
+  // Users
   await _db.collection('users').createIndex({ email: 1 }, { unique: true })
   await _db.collection('sessions').createIndex({ token: 1 }, { unique: true })
+
+  // Products and stores
+  await _db.collection('products').createIndex({ id: 1 }, { unique: true })
+  await _db.collection('products').createIndex({ category_slug: 1, subcategory_slug: 1 })
+  await _db.collection('stores').createIndex({ id: 1 }, { unique: true })
+  await _db.collection('product_store_map').createIndex({ product_id: 1, store_id: 1 }, { unique: true })
+
+  // Prices
+  await _db.collection('prices').createIndex({ product_id: 1, store_id: 1 }, { unique: true })
+  await _db.collection('prices').createIndex({ fetched_at: 1 })
+
+  // Favorites
+  await _db.collection('favorited_items').createIndex({ user_id: 1, product_id: 1 }, { unique: true })
+
+  // Settings
+  await _db.collection('setting').createIndex({ key: 1 }, { unique: true })
 
   return _db
 }

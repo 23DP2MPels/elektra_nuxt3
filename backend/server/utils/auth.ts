@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { mongoDb } from './mongo'
-import { db } from './db'
+import { setCookie, getCookie, deleteCookie } from 'h3'
 import 'dotenv/config'
 
 const COOKIE_NAME = 'session'
@@ -68,21 +68,10 @@ export async function getUserIdFromEvent(event: any) {
     if (!session) return null
     if (session.expires_at < Date.now()) return null
 
-    await ensureSqliteUserById(session.user_id)
     return session.user_id
   } catch {
     return null
   }
-}
-
-export async function ensureSqliteUserById(userId: string) {
-  const user = await getUserById(userId)
-  if (!user) return
-
-  db().prepare(`
-    INSERT OR IGNORE INTO users(id, email, password_hash, created_at, is_admin)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(user.id, user.email, user.password_hash, user.created_at, user.is_admin ? 1 : 0)
 }
 
 export async function getUserByEmail(email: string) {
@@ -98,17 +87,6 @@ export async function getUserById(userId: string) {
 export async function createUser(user: UserDoc) {
   const mongo = await mongoDb()
   await mongo.collection<UserDoc>('users').insertOne(user)
-  db().prepare(`
-    INSERT OR IGNORE INTO users(id, email, password_hash, created_at, is_admin)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(user.id, user.email, user.password_hash, user.created_at, user.is_admin ? 1 : 0)
-}
-
-export async function ensureSqliteUser(user: UserDoc) {
-  db().prepare(`
-    INSERT OR IGNORE INTO users(id, email, password_hash, created_at, is_admin)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(user.id, user.email, user.password_hash, user.created_at, user.is_admin ? 1 : 0)
 }
 
 export async function deleteSession(token: string) {

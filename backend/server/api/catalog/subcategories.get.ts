@@ -1,18 +1,32 @@
-import { db } from '../../utils/db'
+import { getQuery, createError } from 'h3'
+import { mongoDb } from '../../utils/mongo'
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   const category = String(getQuery(event).category || '').trim()
   if (!category) {
     throw createError({ statusCode: 400, statusMessage: 'category is required' })
   }
 
-  const rows = db().prepare(`
-    SELECT subcategory_slug, subcategory_name, COUNT(*) AS productCount, category_name
-    FROM products
-    WHERE category_slug = ?
-    GROUP BY subcategory_slug, subcategory_name
-    ORDER BY subcategory_name
-  `).all(category) as Array<{ subcategory_slug: string; subcategory_name: string; productCount: number; category_name: string }>
+  const mongo = await mongoDb()
+  const rows = await mongo.collection('products').aggregate([
+    { $match: { category_slug: category } },
+    {
+      $group: {
+        _id: { subcategory_slug: '$subcategory_slug', subcategory_name: '$subcategory_name', category_name: '$category_name' },
+        productCount: { $sum: 1 }
+      }
+    },
+    {
+      $project: {
+        subcategory_slug: '$_id.subcategory_slug',
+        subcategory_name: '$_id.subcategory_name',
+        category_name: '$_id.category_name',
+        productCount: 1,
+        _id: 0
+      }
+    },
+    { $sort: { subcategory_name: 1 } }
+  ]).toArray()
 
   const categoryName = rows.length ? rows[0].category_name : null
   return {

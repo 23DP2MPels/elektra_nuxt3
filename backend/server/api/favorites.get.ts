@@ -1,4 +1,4 @@
-import { db } from '../utils/db'
+import { createError } from 'h3'
 import { createError } from 'h3'
 import { mongoDb } from '../utils/mongo'
 import { getUserIdFromEvent } from '../utils/auth'
@@ -19,15 +19,10 @@ export default defineEventHandler(async (event) => {
   const productIds = favorites.map((fav) => fav.product_id).filter(Boolean)
   if (!productIds.length) return []
 
-  const placeholders = productIds.map(() => '?').join(',')
-  const products = db()
-    .prepare(`
-      SELECT id, name, category_slug, category_name, subcategory_slug, subcategory_name
-      FROM products
-      WHERE id IN (${placeholders})
-      ORDER BY name
-    `)
-    .all(...productIds)
+  const products = await mongo.collection('products')
+    .find({ id: { $in: productIds } })
+    .sort({ name: 1 })
+    .toArray()
 
   return products
 })

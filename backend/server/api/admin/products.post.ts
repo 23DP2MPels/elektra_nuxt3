@@ -1,5 +1,5 @@
 import { defineEventHandler, createError, readBody } from 'h3'
-import { db } from '../../utils/db'
+import { mongoDb } from '../../utils/mongo'
 import { getUserById, getUserIdFromEvent } from '../../utils/auth'
 import { id } from '../../utils/ids'
 
@@ -30,17 +30,22 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid JSON in specs' })
   }
 
-  db().prepare(
-    `INSERT INTO products (id, name, category_slug, category_name, subcategory_slug, subcategory_name, specs_json)
-     VALUES (?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET
-       name = excluded.name,
-       category_slug = excluded.category_slug,
-       category_name = excluded.category_name,
-       subcategory_slug = excluded.subcategory_slug,
-       subcategory_name = excluded.subcategory_name,
-       specs_json = excluded.specs_json`
-  ).run(productId, name, categorySlug, categoryName, subcategorySlug, subcategoryName, JSON.stringify(specs))
+  const mongo = await mongoDb()
+  await mongo.collection('products').updateOne(
+    { id: productId },
+    {
+      $set: {
+        id: productId,
+        name,
+        category_slug: categorySlug,
+        category_name: categoryName,
+        subcategory_slug: subcategorySlug,
+        subcategory_name: subcategoryName,
+        specs_json: JSON.stringify(specs),
+      }
+    },
+    { upsert: true }
+  )
 
   return { ok: true, product: { id: productId, name, category_slug: categorySlug, category_name: categoryName, subcategory_slug: subcategorySlug, subcategory_name: subcategoryName, specs_json: JSON.stringify(specs) } }
 })

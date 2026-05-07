@@ -1,12 +1,10 @@
-import { db } from '../../utils/db'
+import { defineEventHandler, getRouterParam, createError } from 'h3'
+import { mongoDb } from '../../utils/mongo'
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   const id = String(getRouterParam(event, 'id') || '')
-  const row = db().prepare(`
-    SELECT id, name, category_slug, category_name, subcategory_slug, subcategory_name, specs_json
-    FROM products
-    WHERE id = ?
-  `).get(id) as any
+  const mongo = await mongoDb()
+  const row = await mongo.collection('products').findOne({ id })
 
   if (!row) {
     throw createError({ statusCode: 404, statusMessage: 'Product not found' })

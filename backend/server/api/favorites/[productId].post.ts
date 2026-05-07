@@ -1,5 +1,5 @@
 import { defineEventHandler, createError, getRouterParam } from 'h3'
-import { db } from '../../utils/db'
+import { defineEventHandler, createError, getRouterParam } from 'h3'
 import { mongoDb } from '../../utils/mongo'
 import { getUserIdFromEvent } from '../../utils/auth'
 
@@ -10,10 +10,10 @@ export default defineEventHandler(async (event) => {
   const productId = String(getRouterParam(event, 'productId') || '')
   if (!productId) throw createError({ statusCode: 400, statusMessage: 'Missing productId' })
 
-  const product = db().prepare('SELECT id FROM products WHERE id = ?').get(productId)
+  const mongo = await mongoDb()
+  const product = await mongo.collection('products').findOne({ id: productId })
   if (!product) throw createError({ statusCode: 404, statusMessage: 'Product not found' })
 
-  const mongo = await mongoDb()
   await mongo.collection('favorited_items').updateOne(
     { user_id: userId, product_id: productId },
     { $set: { user_id: userId, product_id: productId, created_at: Date.now() } },

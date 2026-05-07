@@ -1,5 +1,5 @@
 import { defineEventHandler, createError } from 'h3'
-import { db } from '../../utils/db'
+import { mongoDb } from '../../utils/mongo'
 import { getUserById, getUserIdFromEvent } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
@@ -9,13 +9,11 @@ export default defineEventHandler(async (event) => {
   const me = await getUserById(userId)
   if (!me || !me.is_admin) throw createError({ statusCode: 403, statusMessage: 'Admin only' })
 
-  const products = db()
-    .prepare(
-      `SELECT id, name, category_slug, category_name, subcategory_slug, subcategory_name, specs_json
-       FROM products
-       ORDER BY category_name, subcategory_name, name`
-    )
-    .all() as Array<{ id: string; name: string; category_slug: string; category_name: string; subcategory_slug: string; subcategory_name: string; specs_json: string }>
+  const mongo = await mongoDb()
+  const products = await mongo.collection('products')
+    .find({})
+    .sort({ category_name: 1, subcategory_name: 1, name: 1 })
+    .toArray()
 
   return { products }
 })

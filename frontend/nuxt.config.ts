@@ -10,14 +10,14 @@ export default defineNuxtConfig({
   // Fix noisy dev errors from source-map WASM ("unreachable")
   sourcemap: false,
 
-  // Оставляем только модуль. Он сам подтянет стили и плагины Vite.
-  modules: [
-    'vuetify-nuxt-module'
-  ],
+  
+  
 
   // Указываем серверный каталог отдельно, чтобы backend кода находился в backend/server.
   serverDir: '../backend/server',
-  modulesDir: ['../node_modules'],
+  modulesDir: ['../node_modules', './node_modules'],
+  // Оставляем только модуль. Он сам подтянет стили и плагины Vite.
+  modules: ['vuetify-nuxt-module'],
 
   // Настройки Vuetify (если понадобятся в будущем) пишутся здесь
   vuetify: {

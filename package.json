@@ -2,6 +2,7 @@
   "name": "elektra_nuxt3",
   "type": "module",
   "private": true,
+  "workspaces": ["frontend"],
   "scripts": {
     "build": "cd frontend && npx nuxt build",
     "dev": "cd frontend && npx nuxt dev --host 127.0.0.1 --port 3000",

@@ -1,0 +1,54 @@
+{
+  "catalog": {
+    "title": "Preču katalogs",
+    "subtitle": "Atrodiet vajadzīgo preci ērtās kategorijās",
+    "search": "Preču meklēšana",
+    "account": "Personīgais konts",
+    "loading": "Kategoriju ielāde...",
+    "products": "preces"
+  },
+  "search": {
+    "nav": {
+      "home": "Sākums",
+      "account": "Konts"
+    },
+    "hero": {
+      "title": "Preču meklēšana",
+      "subtitle": "Atrodiet vajadzīgo preci mūsu katalogā"
+    },
+    "form": {
+      "placeholder": "Ievadiet preces nosaukumu...",
+      "button": "Meklēt"
+    },
+    "loading": "Meklējam preces...",
+    "error": {
+      "title": "Meklēšanas kļūda"
+    }
+  },
+  "account": {
+    "nav": {
+      "home": "Sākums",
+      "search": "Meklēšana"
+    },
+    "hero": {
+      "title": "Personīgais konts",
+      "subtitle": "Pārvaldiet savus datus un iecienītākās preces"
+    },
+    "admin": "Administrators",
+    "logout": "Iziet",
+    "adminPanel": "Administratora panelis",
+    "adminDescription": "Preču un kategoriju pārvaldība",
+    "goToAdmin": "Doties uz administratora paneli",
+    "favorites": {
+      "title": "Iecienītākās preces",
+      "subtitle": "Jūsu saglabātās preces",
+      "loading": "Ielādējam iecienītākās...",
+      "view": "Skatīt",
+      "empty": {
+        "title": "Nav iecienītu preču",
+        "description": "Pievienojiet preces izlasei, lai ātri atrastu tās vēlāk",
+        "browse": "Skatīt katalogu"
+      }
+    }
+  }
+}

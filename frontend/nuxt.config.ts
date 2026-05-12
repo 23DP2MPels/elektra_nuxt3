@@ -17,7 +17,7 @@ export default defineNuxtConfig({
   serverDir: '../backend/server',
   modulesDir: ['../node_modules', './node_modules'],
   // Оставляем только модуль. Он сам подтянет стили и плагины Vite.
-  modules: ['vuetify-nuxt-module'],
+  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n'],
 
   // Настройки Vuetify (если понадобятся в будущем) пишутся здесь
   vuetify: {
@@ -27,6 +27,26 @@ export default defineNuxtConfig({
     vuetifyOptions: {
       // Здесь можно будет настроить тему (темная/светлая)
     }
+  },
+
+  // Настройки i18n
+  i18n: {
+    langDir: 'locales',
+    locales: [
+      { code: 'ru', name: 'Русский', iso: 'ru-RU', file: 'ru.json' },
+      { code: 'lv', name: 'Latviešu', iso: 'lv-LV', file: 'lv.json' },
+      { code: 'en', name: 'English', iso: 'en-US', file: 'en.json' }
+    ],
+    defaultLocale: 'ru',
+    strategy: 'prefix_except_default',
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      redirectOn: 'root',
+      alwaysRedirect: false,
+      fallbackLocale: 'ru'
+    },
+    baseUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   }
 })
 

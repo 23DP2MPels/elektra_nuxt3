@@ -1,0 +1,54 @@
+{
+  "catalog": {
+    "title": "Product Catalog",
+    "subtitle": "Find the product you need in convenient categories",
+    "search": "Product Search",
+    "account": "Personal Account",
+    "loading": "Loading categories...",
+    "products": "products"
+  },
+  "search": {
+    "nav": {
+      "home": "Home",
+      "account": "Account"
+    },
+    "hero": {
+      "title": "Product Search",
+      "subtitle": "Find the product you need in our catalog"
+    },
+    "form": {
+      "placeholder": "Enter product name...",
+      "button": "Search"
+    },
+    "loading": "Searching for products...",
+    "error": {
+      "title": "Search Error"
+    }
+  },
+  "account": {
+    "nav": {
+      "home": "Home",
+      "search": "Search"
+    },
+    "hero": {
+      "title": "Personal Account",
+      "subtitle": "Manage your data and favorite products"
+    },
+    "admin": "Administrator",
+    "logout": "Logout",
+    "adminPanel": "Admin Panel",
+    "adminDescription": "Product and category management",
+    "goToAdmin": "Go to Admin",
+    "favorites": {
+      "title": "Favorite Products",
+      "subtitle": "Your saved products",
+      "loading": "Loading favorites...",
+      "view": "View",
+      "empty": {
+        "title": "No favorite products",
+        "description": "Add products to favorites to find them quickly later",
+        "browse": "Browse catalog"
+      }
+    }
+  }
+}

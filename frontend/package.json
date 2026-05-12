@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@nuxtjs/i18n": "^10.3.0"
+  }
+}

@@ -2,8 +2,8 @@
   <main class="account-page">
     <!-- Navigation -->
     <nav class="nav-links">
-      <NuxtLink to="/" class="nav-link">Главная</NuxtLink>
-      <NuxtLink to="/search" class="nav-link secondary">Поиск</NuxtLink>
+      <NuxtLink to="/" class="nav-link">{{ $t('account.nav.home') }}</NuxtLink>
+      <NuxtLink to="/search" class="nav-link secondary">{{ $t('account.nav.search') }}</NuxtLink>
     </nav>
 
     <!-- Authenticated User Section -->
@@ -11,8 +11,8 @@
       <!-- Hero Section -->
       <section class="hero-section">
         <div class="hero-content">
-          <h1 class="hero-title">Личный кабинет</h1>
-          <p class="hero-subtitle">Управляйте своими данными и избранными товарами</p>
+          <h1 class="hero-title">{{ $t('account.hero.title') }}</h1>
+          <p class="hero-subtitle">{{ $t('account.hero.subtitle') }}</p>
         </div>
       </section>
 
@@ -27,7 +27,7 @@
             </div>
             <div class="user-info">
               <h2>{{ me.user.email }}</h2>
-              <p v-if="me.user.is_admin" class="admin-badge">Администратор</p>
+              <p v-if="me.user.is_admin" class="admin-badge">{{ $t('account.admin') }}</p>
             </div>
           </div>
 
@@ -36,7 +36,7 @@
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
               </svg>
-              Выйти
+              {{ $t('account.logout') }}
             </button>
           </div>
         </div>
@@ -48,24 +48,24 @@
           <div class="admin-header">
             <div class="admin-icon">⚙️</div>
             <div>
-              <h3>Панель администратора</h3>
-              <p>Управление товарами и категориями</p>
+              <h3>{{ $t('account.adminPanel') }}</h3>
+              <p>{{ $t('account.adminDescription') }}</p>
             </div>
           </div>
-          <NuxtLink to="/admin" class="admin-btn">Перейти в админку</NuxtLink>
+          <NuxtLink to="/admin" class="admin-btn">{{ $t('account.goToAdmin') }}</NuxtLink>
         </div>
       </section>
 
       <!-- Favorites Section -->
       <section class="favorites-section">
         <div class="section-header">
-          <h2>Избранные товары</h2>
-          <p>Ваши сохраненные товары</p>
+          <h2>{{ $t('account.favorites.title') }}</h2>
+          <p>{{ $t('account.favorites.subtitle') }}</p>
         </div>
 
         <div v-if="favoritesLoading" class="loading-state">
           <div class="loading-spinner"></div>
-          <p>Загружаем избранное...</p>
+          <p>{{ $t('account.favorites.loading') }}</p>
         </div>
 
         <div v-else-if="favorites.length" class="favorites-grid">
@@ -85,16 +85,16 @@
               </div>
             </div>
             <div class="favorite-actions">
-              <NuxtLink :to="`/p/${product.id}`" class="view-btn">Посмотреть</NuxtLink>
+              <NuxtLink :to="`/p/${product.id}`" class="view-btn">{{ $t('account.favorites.view') }}</NuxtLink>
             </div>
           </div>
         </div>
 
         <div v-else class="empty-favorites">
           <div class="empty-icon">❤️</div>
-          <h3>Нет избранных товаров</h3>
-          <p>Добавляйте товары в избранное, чтобы быстро находить их позже</p>
-          <NuxtLink to="/" class="browse-btn">Посмотреть каталог</NuxtLink>
+          <h3>{{ $t('account.favorites.empty.title') }}</h3>
+          <p>{{ $t('account.favorites.empty.description') }}</p>
+          <NuxtLink to="/" class="browse-btn">{{ $t('account.favorites.empty.browse') }}</NuxtLink>
         </div>
       </section>
 

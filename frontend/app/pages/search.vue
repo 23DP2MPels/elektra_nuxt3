@@ -2,15 +2,15 @@
   <main class="search-page">
     <!-- Navigation -->
     <nav class="nav-links">
-      <NuxtLink to="/" class="nav-link">Главная</NuxtLink>
-      <NuxtLink to="/account" class="nav-link secondary">Аккаунт</NuxtLink>
+      <NuxtLink to="/" class="nav-link">{{ $t('search.nav.home') }}</NuxtLink>
+      <NuxtLink to="/account" class="nav-link secondary">{{ $t('search.nav.account') }}</NuxtLink>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-content">
-        <h1 class="hero-title">Поиск товаров</h1>
-        <p class="hero-subtitle">Найдите нужный товар в нашем каталоге</p>
+        <h1 class="hero-title">{{ $t('search.hero.title') }}</h1>
+        <p class="hero-subtitle">{{ $t('search.hero.subtitle') }}</p>
       </div>
     </section>
 
@@ -22,14 +22,14 @@
             <input
               v-model="q"
               type="search"
-              placeholder="Введите название товара..."
+              :placeholder="$t('search.form.placeholder')"
               class="search-input"
             />
             <button type="submit" class="search-btn">
               <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
-              Искать
+              {{ $t('search.form.button') }}
             </button>
           </div>
         </form>
@@ -41,12 +41,12 @@
       <div class="results-container">
         <div v-if="loading" class="loading-state">
           <div class="loading-spinner"></div>
-          <p>Ищем товары...</p>
+          <p>{{ $t('search.loading') }}</p>
         </div>
 
         <div v-else-if="error" class="error-state">
           <div class="error-icon">⚠️</div>
-          <h3>Ошибка поиска</h3>
+          <h3>{{ $t('search.error.title') }}</h3>
           <p>{{ error }}</p>
         </div>
 

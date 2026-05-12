@@ -1,22 +1,22 @@
 <template>
   <main>
     <div class="hero">
-      <h1>Каталог товаров</h1>
-      <p>Найдите нужный товар в удобных категориях</p>
+      <h1>{{ $t('catalog.title') }}</h1>
+      <p>{{ $t('catalog.subtitle') }}</p>
     </div>
 
     <div class="nav-links">
-      <NuxtLink to="/search" class="nav-link">Поиск товаров</NuxtLink>
-      <NuxtLink to="/account" class="nav-link">Личный кабинет</NuxtLink>
+      <NuxtLink to="/search" class="nav-link">{{ $t('catalog.search') }}</NuxtLink>
+      <NuxtLink to="/account" class="nav-link">{{ $t('catalog.account') }}</NuxtLink>
     </div>
 
-    <div v-if="loading" class="loading">Загрузка категорий...</div>
+    <div v-if="loading" class="loading">{{ $t('catalog.loading') }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else class="categories-grid">
       <div v-for="c in categories" :key="c.category_slug" class="category-card">
         <NuxtLink :to="`/c/${c.category_slug}`" class="category-link">
           <h3>{{ c.category_name }}</h3>
-          <p class="category-count">{{ c.productCount }} товаров</p>
+          <p class="category-count">{{ c.productCount }} {{ $t('catalog.products') }}</p>
         </NuxtLink>
       </div>
     </div>

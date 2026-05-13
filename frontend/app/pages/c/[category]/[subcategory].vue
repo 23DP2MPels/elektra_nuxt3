@@ -13,7 +13,7 @@
 
     <template v-else-if="categoryName && subcategoryName">
       <div class="page-header">
-        <h1>{{ categoryName }} / {{ subcategoryName }}</h1>
+        <h1>{{ displayCategoryName }} / {{ displaySubcategoryName }}</h1>
         <p class="product-count">Найдено товаров: {{ filteredProducts.length }} из {{ products.length }}</p>
       </div>
 
@@ -202,6 +202,9 @@ watchEffect(() => {
   }
   loading.value = Boolean(pending.value)
 })
+
+const displayCategoryName = computed(() => categoryName.value || 'Loading...')
+const displaySubcategoryName = computed(() => subcategoryName.value || 'Loading...')
 
 const localQuery = ref('')
 const enumFilters = reactive<Record<string, string>>({})

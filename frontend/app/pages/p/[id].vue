@@ -24,12 +24,6 @@
         <div class="product-main">
           <div class="product-image-card">
         <img :src="imageUrl" :alt="product.name" class="product-image" @error="onImageError" />
-        <div class="brand-row">
-          <div class="brand-badge">
-            <img src="/img/logo-electra.png" alt="Elektra" class="brand-logo" />
-            <span>Электра</span>
-          </div>
-        </div>
       </div>
       <div class="product-header">
         <h1>{{ product.name }}</h1>
@@ -179,8 +173,14 @@ const specEntries = computed(() => {
   return specs ? Object.entries(specs) : []
 })
 
-const categoryName = computed(() => localLabel((product.value as any)?.category_name))
-const subcategoryName = computed(() => localLabel((product.value as any)?.subcategory_name))
+const categoryName = computed(() => {
+  const name = localLabel((product.value as any)?.category_name)
+  return name || (product.value as any)?.category_slug || ''
+})
+const subcategoryName = computed(() => {
+  const name = localLabel((product.value as any)?.subcategory_name)
+  return name || (product.value as any)?.subcategory_slug || ''
+})
 
 type PriceItem = {
   storeId: string

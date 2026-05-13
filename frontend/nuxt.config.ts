@@ -17,7 +17,7 @@ export default defineNuxtConfig({
   serverDir: '../backend/server',
   modulesDir: ['../node_modules', './node_modules'],
   // Оставляем только модуль. Он сам подтянет стили и плагины Vite.
-  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n'],
+  modules: ['vuetify-nuxt-module', '@nuxtjs/i18n', '@vite-pwa/nuxt'],
 
   // Настройки Vuetify (если понадобятся в будущем) пишутся здесь
   vuetify: {
@@ -26,6 +26,14 @@ export default defineNuxtConfig({
     },
     vuetifyOptions: {
       // Здесь можно будет настроить тему (темная/светлая)
+    }
+  },
+
+  app: {
+    head: {
+      link: [
+        { rel: 'manifest', href: '/manifest.webmanifest' }
+      ]
     }
   },
 

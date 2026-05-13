@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
   const categoryNameRaw = body?.category_name
   const subcategoryNameRaw = body?.subcategory_name
   const imageUrl = String(body?.image_url || '').trim()
+  const imageAlt = String(body?.image_alt || '').trim()
   const specsJson = String(body?.specs_json || '{}')
 
   const buildLocalizedName = (raw: unknown, en: unknown, ru: unknown, lv: unknown) => {
@@ -65,6 +66,7 @@ export default defineEventHandler(async (event) => {
         subcategory_slug: subcategorySlug,
         subcategory_name: subcategoryName,
         image_url: imageUrl,
+        image_alt: imageAlt || name,
         specs_json: JSON.stringify(specs),
       }
     },
@@ -81,6 +83,7 @@ export default defineEventHandler(async (event) => {
       subcategory_slug: subcategorySlug,
       subcategory_name: subcategoryName,
       image_url: imageUrl,
+      image_alt: imageAlt || name,
       specs_json: JSON.stringify(specs),
     }
   }

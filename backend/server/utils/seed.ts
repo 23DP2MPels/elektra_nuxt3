@@ -44,6 +44,7 @@ export async function seedIfNeeded() {
               category_name: category.name,
               subcategory_slug: sub.slug,
               subcategory_name: sub.name,
+              image_alt: product.name,
               specs_json: JSON.stringify(product.specs),
             }
           },

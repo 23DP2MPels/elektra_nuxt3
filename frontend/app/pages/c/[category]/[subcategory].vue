@@ -8,7 +8,13 @@
       <span>{{ subcategoryName }}</span>
     </div>
 
-    <div v-if="loading" class="loading">Загрузка товаров...</div>
+    <div v-if="loading" class="loading">Loading products...</div>
+    <div v-else-if="isNetworkError" class="network-error">
+      <div class="error-icon">📶</div>
+      <h2>{{ $t('networkError.title') }}</h2>
+      <p>{{ $t('networkError.message') }}</p>
+      <button @click="retryLoad" class="retry-btn">{{ $t('networkError.retry') }}</button>
+    </div>
     <div v-else-if="error" class="error">{{ error }}</div>
 
     <template v-else-if="categoryName && subcategoryName">
@@ -75,7 +81,7 @@
               <div v-for="p in filteredProducts" :key="p.id" class="product-card">
                 <NuxtLink :to="localePath(`/p/${p.id}`)" class="product-link">
                   <div class="product-image-container">
-                    <img :src="getProductImage(p)" :alt="p.name" class="product-preview" @error="onImageError" />
+                    <img :src="getProductImage(p)" :alt="p.image_alt || p.name" class="product-preview" @error="onImageError" />
                   </div>
                   <h3 class="product-name">{{ p.name }}</h3>
                   <div class="product-price-range">
@@ -117,7 +123,7 @@
     <div v-if="compareList.length" class="compare-tray">
       <div class="compare-items">
         <div v-for="item in compareList" :key="item.id" class="compare-item">
-          <img :src="item.image_url || getProductImage(item)" :alt="item.name" />
+          <img :src="item.image_url || getProductImage(item)" :alt="item.image_alt || item.name" />
         </div>
         <span class="compare-summary">Выбрано {{ compareList.length }} из {{ compareCountLimit }}</span>
       </div>
@@ -138,7 +144,7 @@
         </div>
         <div class="compare-modal-thumbs">
           <div v-for="item in compareList" :key="item.id" class="compare-modal-thumb">
-            <img :src="item.image_url || getProductImage(item)" :alt="item.name" />
+            <img :src="item.image_url || getProductImage(item)" :alt="item.image_alt || item.name" />
             <span>{{ item.name }}</span>
           </div>
         </div>
@@ -183,11 +189,12 @@ const categoryName = ref('')
 const subcategoryName = ref('')
 const loading = ref(true)
 const error = ref('')
+const isNetworkError = ref(false)
 
 const url = computed(
   () => `/api/products?category=${encodeURIComponent(categorySlug.value)}&subcategory=${encodeURIComponent(subcategorySlug.value)}&limit=200`
 )
-const { data, pending, error: fetchError } = await useFetch(url)
+const { data, pending, error: fetchError, refresh } = await useFetch(url)
 
 watchEffect(() => {
   if (data.value) {
@@ -196,12 +203,27 @@ watchEffect(() => {
       categoryName.value = localLabel(products.value[0].category_name)
       subcategoryName.value = localLabel(products.value[0].subcategory_name)
     }
+    isNetworkError.value = false
   }
   if (fetchError.value) {
-    error.value = String(fetchError.value.message || fetchError.value.statusMessage || 'Failed to load products')
+    // Check if it's a network error
+    const errorMessage = String(fetchError.value.message || fetchError.value.statusMessage || 'Failed to load products')
+    if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('Failed to fetch') || !navigator.onLine) {
+      isNetworkError.value = true
+      error.value = ''
+    } else {
+      error.value = errorMessage
+      isNetworkError.value = false
+    }
   }
   loading.value = Boolean(pending.value)
 })
+
+function retryLoad() {
+  isNetworkError.value = false
+  error.value = ''
+  refresh()
+}
 
 const displayCategoryName = computed(() => categoryName.value || 'Loading...')
 const displaySubcategoryName = computed(() => subcategoryName.value || 'Loading...')
@@ -932,6 +954,49 @@ function facetName(key: string): string {
 }
 
 .back-link:hover {
+  background: #1f4770;
+}
+
+.network-error {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f8faff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
+  margin: 2rem auto;
+  max-width: 500px;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.network-error h2 {
+  margin: 0 0 1rem 0;
+  color: #1f2a43;
+  font-size: 1.5rem;
+}
+
+.network-error p {
+  margin: 0 0 2rem 0;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2f5f9b;
+  color: #fff;
+  border: 1px solid #2f5f9b;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
   background: #1f4770;
 }
 

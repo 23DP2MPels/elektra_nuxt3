@@ -31,6 +31,7 @@ export default defineEventHandler(async (event) => {
           subcategory_slug: 1,
           subcategory_name: 1,
           image_url: 1,
+          image_alt: 1,
         },
       }
     )

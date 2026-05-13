@@ -11,6 +11,12 @@
     </div>
 
     <div v-if="loading" class="loading">{{ $t('catalog.loading') }}</div>
+    <div v-else-if="isNetworkError" class="network-error">
+      <div class="error-icon">📶</div>
+      <h2>{{ $t('networkError.title') }}</h2>
+      <p>{{ $t('networkError.message') }}</p>
+      <button @click="retryLoad" class="retry-btn">{{ $t('networkError.retry') }}</button>
+    </div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else class="categories-grid">
       <div v-for="c in categories" :key="c.category_slug" class="category-card">
@@ -24,6 +30,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
 
@@ -32,17 +39,35 @@ const { locale } = useI18n()
 const categories = ref<Array<{ category_slug: string; category_name: unknown; productCount: number }>>([])
 const loading = ref(true)
 const error = ref('')
+const isNetworkError = ref(false)
 
 const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 
-try {
-  const { data } = await useFetch('/api/catalog/categories')
-  categories.value = data.value ?? []
-} catch (err: any) {
-  error.value = String(err?.message || err?.statusMessage || 'Failed to load categories')
-} finally {
-  loading.value = false
+async function loadCategories() {
+  loading.value = true
+  error.value = ''
+  isNetworkError.value = false
+  try {
+    const { data } = await useFetch('/api/catalog/categories')
+    categories.value = data.value ?? []
+  } catch (err: any) {
+    const errorMessage = String(err?.message || err?.statusMessage || 'Failed to load categories')
+    if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('Failed to fetch') || !navigator.onLine) {
+      isNetworkError.value = true
+    } else {
+      error.value = errorMessage
+    }
+  } finally {
+    loading.value = false
+  }
 }
+
+function retryLoad() {
+  loadCategories()
+}
+
+// Initial load
+loadCategories()
 </script>
 
 <style scoped>
@@ -135,6 +160,49 @@ try {
   border: 1px solid #fecaca;
   padding: 1rem;
   text-align: center;
+}
+
+.network-error {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f8faff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
+  margin: 2rem auto;
+  max-width: 500px;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.network-error h2 {
+  margin: 0 0 1rem 0;
+  color: #1f2a43;
+  font-size: 1.5rem;
+}
+
+.network-error p {
+  margin: 0 0 2rem 0;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2f5f9b;
+  color: #fff;
+  border: 1px solid #2f5f9b;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #1f4770;
 }
 </style>
 

@@ -44,6 +44,13 @@
           <p>{{ $t('search.loading') }}</p>
         </div>
 
+        <div v-else-if="isNetworkError" class="network-error">
+          <div class="error-icon">📶</div>
+          <h3>{{ $t('networkError.title') }}</h3>
+          <p>{{ $t('networkError.message') }}</p>
+          <button @click="retryLoad" class="retry-btn">{{ $t('networkError.retry') }}</button>
+        </div>
+
         <div v-else-if="error" class="error-state">
           <div class="error-icon">⚠️</div>
           <h3>{{ $t('search.error.title') }}</h3>
@@ -62,7 +69,7 @@
           <div v-if="results.length" class="results-grid">
             <div v-for="result in results" :key="result.id" class="result-card">
               <div class="result-image-container">
-                <img :src="getResultImage(result)" :alt="result.name" class="result-preview" @error="onImageError" />
+                <img :src="getResultImage(result)" :alt="result.image_alt || result.name" class="result-preview" @error="onImageError" />
               </div>
               <div class="result-content">
                 <h3 class="result-title">
@@ -108,6 +115,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
 
@@ -121,6 +129,7 @@ const query = computed(() => String(route.query.q || '').trim())
 const results = ref<Array<{ id: string; name: string; category_slug: string; category_name: unknown; subcategory_slug: string; subcategory_name: unknown }>>([])
 const loading = ref(false)
 const error = ref('')
+const isNetworkError = ref(false)
 
 const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 
@@ -132,15 +141,25 @@ async function loadResults() {
 
   loading.value = true
   error.value = ''
+  isNetworkError.value = false
 
   try {
     const { data } = await useFetch(`/api/products?q=${encodeURIComponent(query.value)}&limit=200`)
     results.value = data.value ?? []
   } catch (err: any) {
-    error.value = String(err?.message || err?.statusMessage || 'Search failed')
+    const errorMessage = String(err?.message || err?.statusMessage || 'Search failed')
+    if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('Failed to fetch') || !navigator.onLine) {
+      isNetworkError.value = true
+    } else {
+      error.value = errorMessage
+    }
   } finally {
     loading.value = false
   }
+}
+
+function retryLoad() {
+  loadResults()
 }
 
 watchEffect(() => {
@@ -469,6 +488,49 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
 
 .view-btn:hover {
   background: #1f2937;
+}
+
+.network-error {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f8faff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
+  margin: 2rem auto;
+  max-width: 500px;
+}
+
+.network-error .error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.network-error h3 {
+  margin: 0 0 1rem 0;
+  color: #1f2a43;
+  font-size: 1.5rem;
+}
+
+.network-error p {
+  margin: 0 0 2rem 0;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2f5f9b;
+  color: #fff;
+  border: 1px solid #2f5f9b;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #1f4770;
 }
 
 @media (max-width: 768px) {

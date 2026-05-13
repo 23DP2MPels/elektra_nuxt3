@@ -19,11 +19,18 @@
       <NuxtLink :to="localePath('/account')" class="nav-link">Личный кабинет</NuxtLink>
     </div>
 
+    <div v-if="isNetworkError" class="network-error">
+      <div class="error-icon">📶</div>
+      <h3>{{ $t('networkError.title') }}</h3>
+      <p>{{ $t('networkError.message') }}</p>
+      <button @click="retryLoad" class="retry-btn">{{ $t('networkError.retry') }}</button>
+    </div>
+
     <template v-if="product">
       <div class="product-layout">
         <div class="product-main">
           <div class="product-image-card">
-        <img :src="imageUrl" :alt="product.name" class="product-image" @error="onImageError" />
+        <img :src="imageUrl" :alt="product.image_alt || product.name" class="product-image" @error="onImageError" />
       </div>
       <div class="product-header">
         <h1>{{ product.name }}</h1>
@@ -108,7 +115,7 @@
     <div v-if="compareList.length" class="compare-tray">
       <div class="compare-items">
         <div v-for="item in compareList" :key="item.id" class="compare-item">
-          <img :src="item.image_url || getDefaultImage(item.subcategory_slug || '')" :alt="item.name" />
+          <img :src="item.image_url || getDefaultImage(item.subcategory_slug || '')" :alt="item.image_alt || item.name" />
         </div>
         <span class="compare-summary">Выбрано {{ compareList.length }} из {{ compareCountLimit }}</span>
       </div>
@@ -129,7 +136,7 @@
         </div>
         <div class="compare-modal-thumbs">
           <div v-for="item in compareList" :key="item.id" class="compare-modal-thumb">
-            <img :src="item.image_url || getDefaultImage(item.subcategory_slug || '')" :alt="item.name" />
+            <img :src="item.image_url || getDefaultImage(item.subcategory_slug || '')" :alt="item.image_alt || item.name" />
             <span>{{ item.name }}</span>
           </div>
         </div>
@@ -157,7 +164,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watchEffect, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
 const route = useRoute()
@@ -192,6 +199,20 @@ type PriceItem = {
   fetchedAt: number
   ok: boolean
   error: string | null
+}
+
+// Network error handling
+const isNetworkError = ref(false)
+
+async function retryLoad() {
+  isNetworkError.value = false
+  try {
+    await navigateTo(route.fullPath, { replace: true })
+  } catch (e: any) {
+    if (!navigator.onLine || e?.message?.includes('fetch') || e?.message?.includes('network')) {
+      isNetworkError.value = true
+    }
+  }
 }
 
 // Prices state
@@ -927,6 +948,49 @@ function facetName(key: string): string {
 }
 
 .back-link:hover {
+  background: #1f4770;
+}
+
+.network-error {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f8faff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
+  margin: 2rem auto;
+  max-width: 500px;
+}
+
+.network-error .error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.network-error h3 {
+  margin: 0 0 1rem 0;
+  color: #1f2a43;
+  font-size: 1.5rem;
+}
+
+.network-error p {
+  margin: 0 0 2rem 0;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2f5f9b;
+  color: #fff;
+  border: 1px solid #2f5f9b;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
   background: #1f4770;
 }
 

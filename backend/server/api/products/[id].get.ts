@@ -15,6 +15,8 @@ export default defineEventHandler(async (event) => {
     name: row.name,
     category_slug: row.category_slug,
     subcategory_slug: row.subcategory_slug,
+    image_url: row.image_url,
+    image_alt: row.image_alt ?? row.name,
     specs_json: row.specs_json,
     specs: JSON.parse(row.specs_json),
   }

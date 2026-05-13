@@ -3,6 +3,13 @@
     <p><NuxtLink :to="localePath('/account')">← Back to account</NuxtLink></p>
     <h1>Admin panel</h1>
 
+    <div v-if="isNetworkError" class="network-error">
+      <div class="error-icon">📶</div>
+      <h3>{{ $t('networkError.title') }}</h3>
+      <p>{{ $t('networkError.message') }}</p>
+      <button @click="retryLoad" class="retry-btn">{{ $t('networkError.retry') }}</button>
+    </div>
+
     <div v-if="loading">Loading admin data...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
@@ -45,6 +52,10 @@
           <div class="form-field">
             <label>Image URL / path</label>
             <input v-model="form.image_url" placeholder="/img/product_img_placeholder/gamepad.png" />
+          </div>
+          <div class="form-field">
+            <label>Image alt text</label>
+            <input v-model="form.image_alt" placeholder="Alt text for the product image" />
           </div>
           <p class="note" style="visibility:hidden">
             Выберите категорию и подкатегорию из уже созданных.
@@ -156,7 +167,7 @@
             </thead>
             <tbody>
               <tr v-for="product in products" :key="product.id">
-                <td><img :src="product.image_url || '/img/product_img_placeholder/default.png'" :alt="product.name" class="product-thumb" @error="onImageError" /></td>
+                <td><img :src="product.image_url || '/img/product_img_placeholder/default.png'" :alt="product.image_alt || product.name" class="product-thumb" @error="onImageError" /></td>
                 <td>{{ product.name }}</td>
                 <td>{{ localLabel(product.category_name) }} ({{ product.category_slug }})</td>
                 <td>{{ localLabel(product.subcategory_name) }} ({{ product.subcategory_slug }})</td>
@@ -187,7 +198,21 @@ const saving = ref(false)
 const error = ref('')
 const message = ref('')
 const categories = ref<Array<{ category_slug: string; category_name: unknown; subcategory_slug: string; subcategory_name: unknown; productCount: number }>>([])
-const products = ref<Array<{ id: string; name: string; category_slug: string; category_name: unknown; subcategory_slug: string; subcategory_name: unknown; specs_json: string; image_url?: string }>>([])
+const products = ref<Array<{ id: string; name: string; category_slug: string; category_name: unknown; subcategory_slug: string; subcategory_name: unknown; specs_json: string; image_url?: string; image_alt?: string }>>([])
+
+// Network error handling
+const isNetworkError = ref(false)
+
+async function retryLoad() {
+  isNetworkError.value = false
+  try {
+    await loadAdminData()
+  } catch (e: any) {
+    if (!navigator.onLine || e?.message?.includes('fetch') || e?.message?.includes('network')) {
+      isNetworkError.value = true
+    }
+  }
+}
 
 const selectedProductId = ref<string | null>(null)
 const useExistingCategory = ref(true)
@@ -208,6 +233,7 @@ const form = reactive({
   subcategory_name_ru: '',
   subcategory_name_lv: '',
   image_url: '',
+  image_alt: '',
   specs_json: '{}',
 })
 
@@ -278,6 +304,7 @@ watch(() => form.subcategory_slug, (value) => {
 async function loadAdminData() {
   loading.value = true
   error.value = ''
+  isNetworkError.value = false
   try {
     const [catData, prodData] = await Promise.all([
       $fetch<{ categories: Array<any> }>('/api/admin/categories', { credentials: 'include' }),
@@ -290,7 +317,12 @@ async function loadAdminData() {
       useExistingCategory.value = true
     }
   } catch (e: any) {
-    error.value = String(e?.statusMessage || e?.message || 'Cannot load admin data')
+    const errorMessage = String(e?.statusMessage || e?.message || 'Cannot load admin data')
+    if (!navigator.onLine || errorMessage.includes('fetch') || errorMessage.includes('network')) {
+      isNetworkError.value = true
+    } else {
+      error.value = errorMessage
+    }
   } finally {
     loading.value = false
   }
@@ -327,6 +359,7 @@ function selectProduct(product: any) {
   form.subcategory_name_ru = typeof product.subcategory_name === 'object' ? String(product.subcategory_name.ru || '') : ''
   form.subcategory_name_lv = typeof product.subcategory_name === 'object' ? String(product.subcategory_name.lv || '') : ''
   form.image_url = product.image_url || ''
+  form.image_alt = product.image_alt || ''
   form.specs_json = product.specs_json || '{}'
   selectedCategorySlug.value = product.category_slug
   useExistingCategory.value = true
@@ -347,6 +380,7 @@ function resetForm() {
   form.subcategory_name_ru = ''
   form.subcategory_name_lv = ''
   form.image_url = ''
+  form.image_alt = ''
   form.specs_json = '{}'
   selectedCategorySlug.value = ''
   useExistingCategory.value = categoryOptions.value.length > 0
@@ -388,6 +422,7 @@ async function saveProduct() {
         subcategory_slug: form.subcategory_slug,
         subcategory_name: subcategoryNameValue,
         image_url: form.image_url,
+        image_alt: form.image_alt,
         specs_json: form.specs_json,
       },
       credentials: 'include',
@@ -611,5 +646,48 @@ button {
   height: 50px;
   object-fit: cover;
   border-radius: 4px;
+}
+
+.network-error {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f8faff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
+  margin: 2rem auto;
+  max-width: 500px;
+}
+
+.network-error .error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.network-error h3 {
+  margin: 0 0 1rem 0;
+  color: #1f2a43;
+  font-size: 1.5rem;
+}
+
+.network-error p {
+  margin: 0 0 2rem 0;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2f5f9b;
+  color: #fff;
+  border: 1px solid #2f5f9b;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #1f4770;
 }
 </style>

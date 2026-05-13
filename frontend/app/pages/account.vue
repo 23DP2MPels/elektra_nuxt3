@@ -7,6 +7,13 @@
     </nav>
 
     <!-- Authenticated User Section -->
+    <div v-if="isNetworkError" class="network-error">
+      <div class="error-icon">📶</div>
+      <h3>{{ $t('networkError.title') }}</h3>
+      <p>{{ $t('networkError.message') }}</p>
+      <button @click="retryLoad" class="retry-btn">{{ $t('networkError.retry') }}</button>
+    </div>
+
     <div v-if="me?.user" class="account-content">
       <!-- Hero Section -->
       <section class="hero-section">
@@ -38,6 +45,58 @@
               </svg>
               {{ $t('account.logout') }}
             </button>
+            <br>
+            <button type="button" @click="showChangePassword = !showChangePassword" class="change-password-btn">
+              {{ $t('account.changePassword') }}
+            </button>
+          </div>
+
+          <!-- Change Password Form -->
+          <div v-if="showChangePassword" class="change-password-form">
+            <h3>{{ $t('account.changePassword') }}</h3>
+            <form @submit.prevent="changePassword" class="password-form">
+              <div class="form-group">
+                <label for="current-pass">{{ $t('account.currentPassword') }}</label>
+                <input
+                  id="current-pass"
+                  v-model="passwordOld"
+                  type="password"
+                  placeholder="Enter your current password"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="new-pass">{{ $t('account.newPassword') }}</label>
+                <input
+                  id="new-pass"
+                  v-model="passwordNew"
+                  type="password"
+                  placeholder="Enter new password (min 6 characters)"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="confirm-pass">{{ $t('account.confirmPassword') }}</label>
+                <input
+                  id="confirm-pass"
+                  v-model="passwordConfirm"
+                  type="password"
+                  placeholder="Confirm new password"
+                  required
+                />
+              </div>
+              <div class="form-actions">
+                <button type="submit" :disabled="busy" class="submit-btn">
+                  {{ busy ? 'Updating...' : $t('account.updatePassword') }}
+                </button>
+                <button type="button" @click="showChangePassword = false" class="cancel-btn">
+                  {{ $t('account.cancel') }}
+                </button>
+              </div>
+            </form>
+            <div v-if="passwordMessage" class="password-message" :class="{ success: passwordMessage.includes('successfully'), error: !passwordMessage.includes('successfully') }">
+              {{ passwordMessage }}
+            </div>
           </div>
         </div>
       </section>
@@ -119,6 +178,23 @@
 
           <div class="admin-tip">
             <p><strong>Tip:</strong> Default admin credentials: <code>admin@local</code> / <code>admin123</code></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Delete Account Section -->
+      <section class="delete-account-section">
+        <div class="delete-account-card">
+          <h3>{{ $t('account.dangerZone') }}</h3>
+          <p>{{ $t('account.dangerZoneDesc') }}</p>
+
+          <div class="delete-actions">
+            <button @click="deleteAccount" :disabled="busy" class="delete-btn">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              {{ $t('account.deleteAccount') }}
+            </button>
           </div>
         </div>
       </section>
@@ -245,6 +321,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
 
@@ -258,20 +335,47 @@ const registerConfirm = ref('')
 const authMode = ref<'login' | 'register'>('login')
 const message = ref('')
 const adminMessage = ref('')
+const passwordMessage = ref('')
+const passwordOld = ref('')
+const passwordNew = ref('')
+const passwordConfirm = ref('')
+const showChangePassword = ref(false)
 const busy = ref(false)
+
+// Network error handling
+const isNetworkError = ref(false)
+
+async function retryLoad() {
+  isNetworkError.value = false
+  try {
+    await refreshMe()
+    await refreshFavorites()
+  } catch (e: any) {
+    if (!navigator.onLine || e?.message?.includes('fetch') || e?.message?.includes('network')) {
+      isNetworkError.value = true
+    }
+  }
+}
 
 const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 
-const { data: me, pending: meLoading, refresh: refreshMe } = await useFetch('/api/auth/me', {
+const { data: me, pending: meLoading, refresh: refreshMe, error: meError } = await useFetch('/api/auth/me', {
   credentials: 'include',
 })
 
-const { data: favoritesData, pending: favoritesLoading, refresh: refreshFavorites } = await useFetch('/api/favorites', {
+const { data: favoritesData, pending: favoritesLoading, refresh: refreshFavorites, error: favoritesError } = await useFetch('/api/favorites', {
   immediate: computed(() => Boolean(me.value?.user)),
   credentials: 'include',
 })
 
 const favorites = computed(() => favoritesData.value || [])
+
+// Watch for network errors
+watchEffect(() => {
+  const hasMeError = meError.value && (!navigator.onLine || String(meError.value.message || meError.value.statusMessage).includes('fetch') || String(meError.value.message || meError.value.statusMessage).includes('network'))
+  const hasFavoritesError = favoritesError.value && (!navigator.onLine || String(favoritesError.value.message || favoritesError.value.statusMessage).includes('fetch') || String(favoritesError.value.message || favoritesError.value.statusMessage).includes('network'))
+  isNetworkError.value = Boolean(hasMeError || hasFavoritesError)
+})
 
 async function login() {
   busy.value = true
@@ -317,6 +421,70 @@ async function logout() {
   try {
     await $fetch('/api/auth/logout', { method: 'POST' })
     await refreshMe()
+  } finally {
+    busy.value = false
+  }
+}
+
+async function changePassword() {
+  if (!passwordOld.value) {
+    passwordMessage.value = 'Current password is required'
+    return
+  }
+  if (!passwordNew.value) {
+    passwordMessage.value = 'New password is required'
+    return
+  }
+  if (passwordNew.value.length < 6) {
+    passwordMessage.value = 'New password must be at least 6 characters'
+    return
+  }
+  if (passwordNew.value !== passwordConfirm.value) {
+    passwordMessage.value = 'Passwords do not match'
+    return
+  }
+
+  busy.value = true
+  passwordMessage.value = ''
+  try {
+    await $fetch('/api/auth/change-password', {
+      method: 'POST',
+      body: {
+        old_password: passwordOld.value,
+        new_password: passwordNew.value,
+        confirm_password: passwordConfirm.value,
+      },
+      credentials: 'include',
+    })
+    passwordMessage.value = $t('account.passwordChanged')
+    passwordOld.value = ''
+    passwordNew.value = ''
+    passwordConfirm.value = ''
+    setTimeout(() => {
+      showChangePassword.value = false
+      passwordMessage.value = ''
+    }, 2000)
+  } catch (e: any) {
+    passwordMessage.value = String(e?.statusMessage || e?.message || 'Failed to change password')
+  } finally {
+    busy.value = false
+  }
+}
+
+async function deleteAccount() {
+  const confirmed = confirm($t('account.deleteConfirm'))
+  if (!confirmed) return
+
+  busy.value = true
+  try {
+    await $fetch('/api/auth/delete-account', {
+      method: 'POST',
+      credentials: 'include',
+    })
+    // Redirect to home page after successful deletion
+    await navigateTo(localePath('/'))
+  } catch (e: any) {
+    alert(String(e?.statusMessage || e?.message || 'Failed to delete account'))
   } finally {
     busy.value = false
   }
@@ -927,6 +1095,131 @@ async function refreshAllPrices() {
   overflow: hidden;
 }
 
+.change-password-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #6366f1;
+  color: #fff;
+  border: 1px solid #6366f1;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-right: 1rem;
+}
+
+.change-password-btn:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.change-password-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.change-password-form {
+  margin-top: 1.5rem;
+  padding: 2rem;
+  background: #f8faff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+}
+
+.change-password-form h3 {
+  margin: 0 0 1.5rem 0;
+  color: #111827;
+  font-size: 1.2rem;
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.password-form .form-group label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.password-form .form-group input {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  transition: border-color 0.2s ease;
+}
+
+.password-form .form-group input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.submit-btn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background: #6366f1;
+  color: #fff;
+  border: 1px solid #6366f1;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #f3f4f6;
+}
+
+.password-message {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+}
+
+.password-message.success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.password-message.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
 .auth-header {
   padding: 2rem 2rem 1rem;
   text-align: center;
@@ -1080,5 +1373,106 @@ async function refreshAllPrices() {
   .refresh-btn {
     justify-content: center;
   }
+}
+
+.delete-account-section {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.delete-account-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.delete-account-card h3 {
+  margin: 0 0 0.5rem 0;
+  color: #dc2626;
+  font-size: 1.3rem;
+}
+
+.delete-account-card > p {
+  margin: 0 0 2rem 0;
+  color: #6b7280;
+}
+
+.delete-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.delete-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #dc2626;
+  color: #fff;
+  border: 1px solid #dc2626;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.delete-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.network-error {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f8faff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
+  margin: 2rem auto;
+  max-width: 500px;
+}
+
+.network-error .error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.network-error h3 {
+  margin: 0 0 1rem 0;
+  color: #1f2a43;
+  font-size: 1.5rem;
+}
+
+.network-error p {
+  margin: 0 0 2rem 0;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2f5f9b;
+  color: #fff;
+  border: 1px solid #2f5f9b;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #1f4770;
 }
 </style>

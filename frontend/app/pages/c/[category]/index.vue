@@ -6,6 +6,13 @@
       <span>{{ localLabel(category?.category_name) }}</span>
     </div>
 
+    <div v-if="isNetworkError" class="network-error">
+      <div class="error-icon">📶</div>
+      <h3>{{ $t('networkError.title') }}</h3>
+      <p>{{ $t('networkError.message') }}</p>
+      <button @click="retryLoad" class="retry-btn">{{ $t('networkError.retry') }}</button>
+    </div>
+
     <div v-if="loading" class="loading">Загрузка подкатегорий...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
 
@@ -36,6 +43,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
 
@@ -47,6 +55,20 @@ const categorySlug = computed(() => String(route.params.category || ''))
 const category = ref<{ category_slug: string; category_name: unknown; subcategories: Array<{ subcategory_slug: string; subcategory_name: unknown; productCount: number }> } | null>(null)
 const loading = ref(true)
 const error = ref('')
+
+// Network error handling
+const isNetworkError = ref(false)
+
+async function retryLoad() {
+  isNetworkError.value = false
+  try {
+    await navigateTo(route.fullPath, { replace: true })
+  } catch (e: any) {
+    if (!navigator.onLine || e?.message?.includes('fetch') || e?.message?.includes('network')) {
+      isNetworkError.value = true
+    }
+  }
+}
 
 const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 
@@ -63,7 +85,12 @@ watchEffect(() => {
     }
   }
   if (fetchError.value) {
-    error.value = String(fetchError.value.message || fetchError.value.statusMessage || 'Failed to load category')
+    const errorMessage = String(fetchError.value.message || fetchError.value.statusMessage || 'Failed to load category')
+    if (!navigator.onLine || errorMessage.includes('fetch') || errorMessage.includes('network')) {
+      isNetworkError.value = true
+    } else {
+      error.value = errorMessage
+    }
   }
   loading.value = Boolean(pending.value)
 })
@@ -180,6 +207,49 @@ watchEffect(() => {
 }
 
 .back-link:hover {
+  background: #1f4770;
+}
+
+.network-error {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f8faff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
+  margin: 2rem auto;
+  max-width: 500px;
+}
+
+.network-error .error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.network-error h3 {
+  margin: 0 0 1rem 0;
+  color: #1f2a43;
+  font-size: 1.5rem;
+}
+
+.network-error p {
+  margin: 0 0 2rem 0;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #2f5f9b;
+  color: #fff;
+  border: 1px solid #2f5f9b;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
   background: #1f4770;
 }
 </style>

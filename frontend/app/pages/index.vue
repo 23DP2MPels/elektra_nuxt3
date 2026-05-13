@@ -15,7 +15,7 @@
     <div v-else class="categories-grid">
       <div v-for="c in categories" :key="c.category_slug" class="category-card">
         <NuxtLink :to="localePath(`/c/${c.category_slug}`)" class="category-link">
-          <h3>{{ c.category_name }}</h3>
+          <h3>{{ localLabel(c.category_name) }}</h3>
           <p class="category-count">{{ c.productCount }} {{ $t('catalog.products') }}</p>
         </NuxtLink>
       </div>
@@ -24,10 +24,16 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
+
 const localePath = useLocalePath()
-const categories = ref<Array<{ category_slug: string; category_name: string; productCount: number }>>([])
+const { locale } = useI18n()
+const categories = ref<Array<{ category_slug: string; category_name: unknown; productCount: number }>>([])
 const loading = ref(true)
 const error = ref('')
+
+const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 
 try {
   const { data } = await useFetch('/api/catalog/categories')

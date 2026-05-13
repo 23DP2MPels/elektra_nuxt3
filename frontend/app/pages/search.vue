@@ -70,11 +70,11 @@
                 </h3>
                 <div class="result-category">
                   <NuxtLink :to="localePath(`/c/${result.category_slug}`)" class="category-link">
-                    {{ result.category_name }}
+                    {{ localLabel(result.category_name) }}
                   </NuxtLink>
                   <span class="category-separator">/</span>
                   <NuxtLink :to="localePath(`/c/${result.category_slug}/${result.subcategory_slug}`)" class="subcategory-link">
-                    {{ result.subcategory_name }}
+                    {{ localLabel(result.subcategory_name) }}
                   </NuxtLink>
                 </div>
                 <div class="result-price">
@@ -108,15 +108,21 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
+
 const route = useRoute()
 const router = useRouter()
 const localePath = useLocalePath()
+const { locale } = useI18n()
 
 const q = ref(String(route.query.q || ''))
 const query = computed(() => String(route.query.q || '').trim())
-const results = ref<Array<{ id: string; name: string; category_slug: string; category_name: string; subcategory_slug: string; subcategory_name: string }>>([])
+const results = ref<Array<{ id: string; name: string; category_slug: string; category_name: unknown; subcategory_slug: string; subcategory_name: unknown }>>([])
 const loading = ref(false)
 const error = ref('')
+
+const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 
 async function loadResults() {
   if (!query.value) {

@@ -3,7 +3,7 @@
     <div class="breadcrumb">
       <NuxtLink :to="localePath('/')">Главная</NuxtLink>
       <span> / </span>
-      <span>{{ category?.category_name }}</span>
+      <span>{{ localLabel(category?.category_name) }}</span>
     </div>
 
     <div v-if="loading" class="loading">Загрузка подкатегорий...</div>
@@ -11,14 +11,14 @@
 
     <template v-else-if="category">
       <div class="category-header">
-        <h1>{{ category.category_name }}</h1>
+        <h1>{{ localLabel(category.category_name) }}</h1>
         <p>Выберите подкатегорию для просмотра товаров</p>
       </div>
 
       <div class="subcategories-grid">
         <div v-for="s in category.subcategories" :key="s.subcategory_slug" class="subcategory-card">
           <NuxtLink :to="localePath(`/c/${category.category_slug}/${s.subcategory_slug}`)" class="subcategory-link">
-            <h3>{{ s.subcategory_name }}</h3>
+            <h3>{{ localLabel(s.subcategory_name) }}</h3>
             <p class="subcategory-count">{{ s.productCount }} товаров</p>
           </NuxtLink>
         </div>
@@ -36,13 +36,19 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
+
 const localePath = useLocalePath()
+const { locale } = useI18n()
 const route = useRoute()
 const categorySlug = computed(() => String(route.params.category || ''))
 
-const category = ref<{ category_slug: string; category_name: string; subcategories: Array<{ subcategory_slug: string; subcategory_name: string; productCount: number }> } | null>(null)
+const category = ref<{ category_slug: string; category_name: unknown; subcategories: Array<{ subcategory_slug: string; subcategory_name: unknown; productCount: number }> } | null>(null)
 const loading = ref(true)
 const error = ref('')
+
+const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 
 const url = computed(() => `/api/catalog/subcategories?category=${encodeURIComponent(categorySlug.value)}`)
 

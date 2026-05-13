@@ -14,11 +14,33 @@ export default defineEventHandler(async (event) => {
   const productId = String(body?.id || '').trim() || id('prd')
   const name = String(body?.name || '').trim()
   const categorySlug = String(body?.category_slug || '').trim()
-  const categoryName = String(body?.category_name || '').trim()
-  const subcategorySlug = String(body?.subcategory_slug || '').trim()
-  const subcategoryName = String(body?.subcategory_name || '').trim()
+  const categoryNameRaw = body?.category_name
+  const subcategoryNameRaw = body?.subcategory_name
   const imageUrl = String(body?.image_url || '').trim()
   const specsJson = String(body?.specs_json || '{}')
+
+  const buildLocalizedName = (raw: unknown, en: unknown, ru: unknown, lv: unknown) => {
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) return raw
+    const localized: Record<string, string> = {}
+    if (typeof en === 'string' && en.trim()) localized.en = en.trim()
+    if (typeof ru === 'string' && ru.trim()) localized.ru = ru.trim()
+    if (typeof lv === 'string' && lv.trim()) localized.lv = lv.trim()
+    if (Object.keys(localized).length) return localized
+    return typeof raw === 'string' ? raw.trim() : ''
+  }
+
+  const categoryName = buildLocalizedName(
+    categoryNameRaw,
+    body?.category_name_en,
+    body?.category_name_ru,
+    body?.category_name_lv,
+  )
+  const subcategoryName = buildLocalizedName(
+    subcategoryNameRaw,
+    body?.subcategory_name_en,
+    body?.subcategory_name_ru,
+    body?.subcategory_name_lv,
+  )
 
   if (!name || !categorySlug || !categoryName || !subcategorySlug || !subcategoryName) {
     throw createError({ statusCode: 400, statusMessage: 'Missing required product fields' })

@@ -167,13 +167,18 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, watchEffect, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
 const localePath = useLocalePath()
+
+const { locale } = useI18n()
+const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 
 const route = useRoute()
 const categorySlug = computed(() => String(route.params.category || ''))
 const subcategorySlug = computed(() => String(route.params.subcategory || ''))
 
-const products = ref<Array<{ id: string; name: string; category_slug: string; category_name: string; subcategory_slug: string; subcategory_name: string; specs_json: string; specs: Record<string, any> }>>([])
+const products = ref<Array<{ id: string; name: string; category_slug: string; category_name: unknown; subcategory_slug: string; subcategory_name: unknown; specs_json: string; specs: Record<string, any> }>>([])
 const categoryName = ref('')
 const subcategoryName = ref('')
 const loading = ref(true)
@@ -188,8 +193,8 @@ watchEffect(() => {
   if (data.value) {
     products.value = data.value ?? []
     if (products.value.length) {
-      categoryName.value = products.value[0].category_name
-      subcategoryName.value = products.value[0].subcategory_name
+      categoryName.value = localLabel(products.value[0].category_name)
+      subcategoryName.value = localLabel(products.value[0].subcategory_name)
     }
   }
   if (fetchError.value) {
@@ -478,6 +483,9 @@ function facetName(key: string): string {
 .filters-sidebar {
   position: sticky;
   top: 2rem;
+  align-self: start;
+  max-height: calc(100vh - 4rem);
+  overflow: hidden;
 }
 
 .filters-card {
@@ -485,6 +493,8 @@ function facetName(key: string): string {
   border-radius: 1rem;
   border: 1px solid #e2e8f0;
   padding: 1.5rem;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .filters-card h2 {

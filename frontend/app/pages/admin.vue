@@ -12,7 +12,7 @@
           <p v-if="categories.length === 0">No categories yet.</p>
           <ul v-else>
             <li v-for="cat in categories" :key="cat.category_slug + cat.subcategory_slug">
-              <strong>{{ cat.category_name }}</strong> / {{ cat.subcategory_name }} — {{ cat.productCount }} products
+              <strong>{{ localLabel(cat.category_name) }}</strong> / {{ localLabel(cat.subcategory_name) }} — {{ cat.productCount }} products
             </li>
           </ul>
           <p><button @click="loadAdminData" :disabled="loading">Refresh categories</button></p>
@@ -46,7 +46,7 @@
             <label>Image URL / path</label>
             <input v-model="form.image_url" placeholder="/img/product_img_placeholder/gamepad.png" />
           </div>
-          <p class="note">
+          <p class="note" style="visibility:hidden">
             Выберите категорию и подкатегорию из уже созданных.
             <button type="button" class="link-button" @click="useExistingCategory.value = !useExistingCategory.value">
               {{ useExistingCategory.value ? 'Создать новую категорию/подкатегорию' : 'Выбрать из существующих' }}
@@ -60,7 +60,7 @@
                 <select v-model="selectedCategorySlug.value" required>
                   <option value="" disabled>Select category</option>
                   <option v-for="cat in categoryOptions" :key="cat.category_slug" :value="cat.category_slug">
-                    {{ cat.category_name }} ({{ cat.category_slug }})
+                    {{ localLabel(cat.category_name) }} ({{ cat.category_slug }})
                   </option>
                 </select>
               </div>
@@ -69,13 +69,25 @@
                 <select v-model="form.subcategory_slug" required>
                   <option value="" disabled>Select subcategory</option>
                   <option v-for="sub in subcategoryOptions" :key="sub.subcategory_slug" :value="sub.subcategory_slug">
-                    {{ sub.subcategory_name }} ({{ sub.subcategory_slug }})
+                    {{ localLabel(sub.subcategory_name) }} ({{ sub.subcategory_slug }})
                   </option>
                 </select>
               </div>
             </div>
-            <input type="hidden" :value="form.category_slug" />
-            <input type="hidden" :value="form.category_name" />
+            <div class="translations-preview">
+              <div class="translation-column">
+                <h3>Category translations</h3>
+                <p>EN: {{ form.category_name_en || form.category_name }}</p>
+                <p>RU: {{ form.category_name_ru || form.category_name }}</p>
+                <p>LV: {{ form.category_name_lv || form.category_name }}</p>
+              </div>
+              <div class="translation-column">
+                <h3>Subcategory translations</h3>
+                <p>EN: {{ form.subcategory_name_en || form.subcategory_name }}</p>
+                <p>RU: {{ form.subcategory_name_ru || form.subcategory_name }}</p>
+                <p>LV: {{ form.subcategory_name_lv || form.subcategory_name }}</p>
+              </div>
+            </div>
           </template>
 
           <template v-else>
@@ -85,8 +97,16 @@
                 <input v-model="form.category_slug" required />
               </div>
               <div class="form-field">
-                <label>Category name</label>
-                <input v-model="form.category_name" required />
+                <label>Category name (EN)</label>
+                <input v-model="form.category_name_en" />
+              </div>
+              <div class="form-field">
+                <label>Category name (RU)</label>
+                <input v-model="form.category_name_ru" />
+              </div>
+              <div class="form-field">
+                <label>Category name (LV)</label>
+                <input v-model="form.category_name_lv" />
               </div>
             </div>
             <div class="form-row">
@@ -95,8 +115,16 @@
                 <input v-model="form.subcategory_slug" required />
               </div>
               <div class="form-field">
-                <label>Subcategory name</label>
-                <input v-model="form.subcategory_name" required />
+                <label>Subcategory name (EN)</label>
+                <input v-model="form.subcategory_name_en" />
+              </div>
+              <div class="form-field">
+                <label>Subcategory name (RU)</label>
+                <input v-model="form.subcategory_name_ru" />
+              </div>
+              <div class="form-field">
+                <label>Subcategory name (LV)</label>
+                <input v-model="form.subcategory_name_lv" />
               </div>
             </div>
           </template>
@@ -130,8 +158,8 @@
               <tr v-for="product in products" :key="product.id">
                 <td><img :src="product.image_url || '/img/product_img_placeholder/default.png'" :alt="product.name" class="product-thumb" @error="onImageError" /></td>
                 <td>{{ product.name }}</td>
-                <td>{{ product.category_name }} ({{ product.category_slug }})</td>
-                <td>{{ product.subcategory_name }} ({{ product.subcategory_slug }})</td>
+                <td>{{ localLabel(product.category_name) }} ({{ product.category_slug }})</td>
+                <td>{{ localLabel(product.subcategory_name) }} ({{ product.subcategory_slug }})</td>
                 <td>
                   <button @click="selectProduct(product)">Edit</button>
                   <button @click="deleteProduct(product.id)" :disabled="saving">Delete</button>
@@ -148,14 +176,18 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
 const localePath = useLocalePath()
+const { locale } = useI18n()
+const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
 const message = ref('')
-const categories = ref<Array<{ category_slug: string; category_name: string; subcategory_slug: string; subcategory_name: string; productCount: number }>>([])
-const products = ref<Array<{ id: string; name: string; category_slug: string; category_name: string; subcategory_slug: string; subcategory_name: string; specs_json: string; image_url?: string }>>([])
+const categories = ref<Array<{ category_slug: string; category_name: unknown; subcategory_slug: string; subcategory_name: unknown; productCount: number }>>([])
+const products = ref<Array<{ id: string; name: string; category_slug: string; category_name: unknown; subcategory_slug: string; subcategory_name: unknown; specs_json: string; image_url?: string }>>([])
 
 const selectedProductId = ref<string | null>(null)
 const useExistingCategory = ref(true)
@@ -167,14 +199,20 @@ const form = reactive({
   name: '',
   category_slug: '',
   category_name: '',
+  category_name_en: '',
+  category_name_ru: '',
+  category_name_lv: '',
   subcategory_slug: '',
   subcategory_name: '',
+  subcategory_name_en: '',
+  subcategory_name_ru: '',
+  subcategory_name_lv: '',
   image_url: '',
   specs_json: '{}',
 })
 
 const categoriesBySlug = computed(() => {
-  const map = new Map<string, { category_name: string; subcategories: Array<{ subcategory_slug: string; subcategory_name: string }> }>()
+  const map = new Map<string, { category_name: unknown; subcategories: Array<{ subcategory_slug: string; subcategory_name: unknown }> }>()
   for (const item of categories.value) {
     if (!map.has(item.category_slug)) {
       map.set(item.category_slug, { category_name: item.category_name, subcategories: [] })
@@ -204,13 +242,23 @@ watch(selectedCategorySlug, (value) => {
   const category = categoriesBySlug.value.get(value)
   if (category) {
     form.category_slug = value
-    form.category_name = category.category_name
+    form.category_name = localLabel(category.category_name)
+    form.category_name_en = typeof category.category_name === 'object' ? String(category.category_name.en || '') : ''
+    form.category_name_ru = typeof category.category_name === 'object' ? String(category.category_name.ru || '') : ''
+    form.category_name_lv = typeof category.category_name === 'object' ? String(category.category_name.lv || '') : ''
+
     if (!subcategoryOptions.value.length) {
       form.subcategory_slug = ''
       form.subcategory_name = ''
+      form.subcategory_name_en = ''
+      form.subcategory_name_ru = ''
+      form.subcategory_name_lv = ''
     } else if (!subcategoryOptions.value.some((s) => s.subcategory_slug === form.subcategory_slug)) {
       form.subcategory_slug = subcategoryOptions.value[0].subcategory_slug
-      form.subcategory_name = subcategoryOptions.value[0].subcategory_name
+      form.subcategory_name = localLabel(subcategoryOptions.value[0].subcategory_name)
+      form.subcategory_name_en = typeof subcategoryOptions.value[0].subcategory_name === 'object' ? String(subcategoryOptions.value[0].subcategory_name.en || '') : ''
+      form.subcategory_name_ru = typeof subcategoryOptions.value[0].subcategory_name === 'object' ? String(subcategoryOptions.value[0].subcategory_name.ru || '') : ''
+      form.subcategory_name_lv = typeof subcategoryOptions.value[0].subcategory_name === 'object' ? String(subcategoryOptions.value[0].subcategory_name.lv || '') : ''
     }
   }
 })
@@ -220,7 +268,10 @@ watch(() => form.subcategory_slug, (value) => {
   if (!category) return
   const selected = category.subcategories.find((s) => s.subcategory_slug === value)
   if (selected) {
-    form.subcategory_name = selected.subcategory_name
+    form.subcategory_name = localLabel(selected.subcategory_name)
+    form.subcategory_name_en = typeof selected.subcategory_name === 'object' ? String(selected.subcategory_name.en || '') : ''
+    form.subcategory_name_ru = typeof selected.subcategory_name === 'object' ? String(selected.subcategory_name.ru || '') : ''
+    form.subcategory_name_lv = typeof selected.subcategory_name === 'object' ? String(selected.subcategory_name.lv || '') : ''
   }
 })
 
@@ -233,7 +284,7 @@ async function loadAdminData() {
       $fetch<{ products: Array<any> }>('/api/admin/products', { credentials: 'include' }),
     ])
     categories.value = catData.categories
-    products.value = prodData.products
+        products.value = prodData.products
     if (categoryOptions.value.length && !selectedCategorySlug.value) {
       selectedCategorySlug.value = categoryOptions.value[0].category_slug
       useExistingCategory.value = true
@@ -266,9 +317,15 @@ function selectProduct(product: any) {
   form.id = product.id
   form.name = product.name
   form.category_slug = product.category_slug
-  form.category_name = product.category_name
+  form.category_name = localLabel(product.category_name)
+  form.category_name_en = typeof product.category_name === 'object' ? String(product.category_name.en || '') : ''
+  form.category_name_ru = typeof product.category_name === 'object' ? String(product.category_name.ru || '') : ''
+  form.category_name_lv = typeof product.category_name === 'object' ? String(product.category_name.lv || '') : ''
   form.subcategory_slug = product.subcategory_slug
-  form.subcategory_name = product.subcategory_name
+  form.subcategory_name = localLabel(product.subcategory_name)
+  form.subcategory_name_en = typeof product.subcategory_name === 'object' ? String(product.subcategory_name.en || '') : ''
+  form.subcategory_name_ru = typeof product.subcategory_name === 'object' ? String(product.subcategory_name.ru || '') : ''
+  form.subcategory_name_lv = typeof product.subcategory_name === 'object' ? String(product.subcategory_name.lv || '') : ''
   form.image_url = product.image_url || ''
   form.specs_json = product.specs_json || '{}'
   selectedCategorySlug.value = product.category_slug
@@ -281,8 +338,14 @@ function resetForm() {
   form.name = ''
   form.category_slug = ''
   form.category_name = ''
+  form.category_name_en = ''
+  form.category_name_ru = ''
+  form.category_name_lv = ''
   form.subcategory_slug = ''
   form.subcategory_name = ''
+  form.subcategory_name_en = ''
+  form.subcategory_name_ru = ''
+  form.subcategory_name_lv = ''
   form.image_url = ''
   form.specs_json = '{}'
   selectedCategorySlug.value = ''
@@ -290,9 +353,30 @@ function resetForm() {
   message.value = ''
 }
 
+function buildLocalizedLabelObject(value: string, en: string, ru: string, lv: string) {
+  const localized: Record<string, string> = {}
+  if (en?.trim()) localized.en = en.trim()
+  if (ru?.trim()) localized.ru = ru.trim()
+  if (lv?.trim()) localized.lv = lv.trim()
+  if (Object.keys(localized).length) return localized
+  return value?.trim() || ''
+}
+
 async function saveProduct() {
   saving.value = true
   message.value = ''
+  const categoryNameValue = buildLocalizedLabelObject(
+    form.category_name,
+    form.category_name_en,
+    form.category_name_ru,
+    form.category_name_lv,
+  )
+  const subcategoryNameValue = buildLocalizedLabelObject(
+    form.subcategory_name,
+    form.subcategory_name_en,
+    form.subcategory_name_ru,
+    form.subcategory_name_lv,
+  )
   try {
     await $fetch('/api/admin/products', {
       method: 'POST',
@@ -300,9 +384,9 @@ async function saveProduct() {
         id: form.id,
         name: form.name,
         category_slug: form.category_slug,
-        category_name: form.category_name,
+        category_name: categoryNameValue,
         subcategory_slug: form.subcategory_slug,
-        subcategory_name: form.subcategory_name,
+        subcategory_name: subcategoryNameValue,
         image_url: form.image_url,
         specs_json: form.specs_json,
       },
@@ -433,6 +517,29 @@ button {
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
     margin-bottom: 1rem;
+  }
+
+  .translations-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    background: #f8faff;
+    border: 1px solid #d5dde8;
+    border-radius: 0.75rem;
+  }
+
+  .translation-column h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.95rem;
+    color: #1f2937;
+  }
+
+  .translation-column p {
+    margin: 0.25rem 0;
+    color: #475569;
+    font-size: 0.95rem;
   }
 
   .form-field {

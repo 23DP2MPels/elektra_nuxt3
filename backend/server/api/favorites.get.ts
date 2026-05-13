@@ -27,7 +27,9 @@ export default defineEventHandler(async (event) => {
           id: 1,
           name: 1,
           category_slug: 1,
+          category_name: 1,
           subcategory_slug: 1,
+          subcategory_name: 1,
           image_url: 1,
         },
       }

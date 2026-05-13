@@ -5,11 +5,11 @@
       <template v-if="product">
         <span> / </span>
         <NuxtLink :to="localePath(`/c/${product.category_slug}`)">
-          {{ product.category_name }}
+          {{ categoryName }}
         </NuxtLink>
         <span> / </span>
         <NuxtLink :to="localePath(`/c/${product.category_slug}/${product.subcategory_slug}`)">
-          {{ product.subcategory_name }}
+          {{ subcategoryName }}
         </NuxtLink>
       </template>
     </div>
@@ -34,8 +34,8 @@
       <div class="product-header">
         <h1>{{ product.name }}</h1>
         <div class="product-meta">
-          <span class="category-badge">{{ product.category_name }}</span>
-          <span class="subcategory-badge">{{ product.subcategory_name }}</span>
+          <span class="category-badge">{{ categoryName }}</span>
+          <span class="subcategory-badge">{{ subcategoryName }}</span>
         </div>
       </div>
 
@@ -164,8 +164,12 @@
 
 <script setup lang="ts">
 import { ref, computed, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
 const route = useRoute()
 const localePath = useLocalePath()
+const { locale } = useI18n()
+const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 const productId = computed(() => String(route.params.id || ''))
 
 const { data: product } = await useFetch(`/api/products/${productId.value}`)
@@ -174,6 +178,9 @@ const specEntries = computed(() => {
   const specs = (product.value as any)?.specs
   return specs ? Object.entries(specs) : []
 })
+
+const categoryName = computed(() => localLabel((product.value as any)?.category_name))
+const subcategoryName = computed(() => localLabel((product.value as any)?.subcategory_name))
 
 type PriceItem = {
   storeId: string

@@ -76,11 +76,11 @@
               </h3>
               <div class="favorite-category">
                 <NuxtLink :to="localePath(`/c/${product.category_slug}`)" class="category-link">
-                  {{ product.category_name }}
+                  {{ localLabel(product.category_name) }}
                 </NuxtLink>
                 <span class="separator">/</span>
                 <NuxtLink :to="localePath(`/c/${product.category_slug}/${product.subcategory_slug}`)" class="subcategory-link">
-                  {{ product.subcategory_name }}
+                  {{ localLabel(product.subcategory_name) }}
                 </NuxtLink>
               </div>
             </div>
@@ -245,7 +245,11 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { normalizeLocalizedLabel } from '~/composables/useLocalizedName'
+
 const localePath = useLocalePath()
+const { locale } = useI18n()
 const loginEmail = ref('')
 const loginPassword = ref('')
 const registerEmail = ref('')
@@ -255,6 +259,8 @@ const authMode = ref<'login' | 'register'>('login')
 const message = ref('')
 const adminMessage = ref('')
 const busy = ref(false)
+
+const localLabel = (value: unknown) => normalizeLocalizedLabel(value, locale.value)
 
 const { data: me, pending: meLoading, refresh: refreshMe } = await useFetch('/api/auth/me', {
   credentials: 'include',

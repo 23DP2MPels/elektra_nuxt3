@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
 
   const mongo = await mongoDb()
   let query: any = {}
-  let sort: any = { category_name: 1, subcategory_name: 1, name: 1 }
+  let sort: any = { category_slug: 1, subcategory_slug: 1, name: 1 }
 
   if (category) {
     query.category_slug = category
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
       query.subcategory_slug = subcategory
       sort = { name: 1 }
     } else {
-      sort = { subcategory_name: 1, name: 1 }
+      sort = { subcategory_slug: 1, name: 1 }
     }
   }
 
@@ -50,8 +50,6 @@ export default defineEventHandler(async (event) => {
     $project: {
       _id: 0,
       prices: 0,
-      category_name: 0,
-      subcategory_name: 0,
     }
   })
 

@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
       }
     },
     {
-      $sort: { category_name: 1, subcategory_name: 1 }
+      $sort: { category_slug: 1, subcategory_slug: 1 }
     }
   ]).toArray()
 

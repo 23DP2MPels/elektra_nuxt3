@@ -1,14 +1,47 @@
 <script setup lang="ts">
 const switchLocalePath = useSwitchLocalePath()
-const { locales } = useI18n()
+const { locales, locale } = useI18n()
+
+const currentLocaleName = computed(() => {
+  const current = locales.value.find(l => l.code === locale.value)
+  return current?.name || 'English'
+})
+
+// Load saved language from localStorage on mount
+onMounted(() => {
+  const saved = localStorage.getItem('selected_language')
+  if (saved && locales.value.some(l => l.code === saved)) {
+    locale.value = saved
+  }
+})
 </script>
 
 <template>
   <VApp>
     <div class="language-switcher">
-      <NuxtLink v-for="locale in locales" :key="locale.code" :to="switchLocalePath(locale.code)" class="lang-link">
-        {{ locale.name }}
-      </NuxtLink>
+      <v-menu offset-y>
+        <template v-slot:activator="{ props }">
+          <v-btn
+            color="primary"
+            v-bind="props"
+            variant="outlined"
+            prepend-icon="mdi-translate"
+          >
+            {{ currentLocaleName }}
+          </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item
+            v-for="lang in locales"
+            :key="lang.code"
+            :to="switchLocalePath(lang.code)"
+            @click="localStorage.setItem('selected_language', lang.code)"
+          >
+            <v-list-item-title>{{ lang.name }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </div>
     <NuxtRouteAnnouncer />
     <VMain>
@@ -40,6 +73,10 @@ body {
   color: #111827;
 }
 
+.v-btn_prepend {
+  margin-inline: 0
+}
+
 .language-switcher {
   position: fixed;
   top: 1rem;
@@ -53,7 +90,6 @@ body {
   padding: 0.5rem 1rem;
   background: #fff;
   border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
   color: #111827;
   text-decoration: none;
   font-size: 0.9rem;
@@ -90,7 +126,10 @@ button, input, select, textarea {
 }
 
 button {
-  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  cursor: pointer;
 }
 
 input, select, textarea {

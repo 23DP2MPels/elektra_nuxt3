@@ -2,8 +2,8 @@
   <main class="account-page">
     <!-- Navigation -->
     <nav class="nav-links">
-      <NuxtLink to="/" class="nav-link">{{ $t('account.nav.home') }}</NuxtLink>
-      <NuxtLink to="/search" class="nav-link secondary">{{ $t('account.nav.search') }}</NuxtLink>
+      <NuxtLink :to="localePath('/')" class="nav-link">{{ $t('account.nav.home') }}</NuxtLink>
+      <NuxtLink :to="localePath('/search')" class="nav-link secondary">{{ $t('account.nav.search') }}</NuxtLink>
     </nav>
 
     <!-- Authenticated User Section -->
@@ -52,7 +52,7 @@
               <p>{{ $t('account.adminDescription') }}</p>
             </div>
           </div>
-          <NuxtLink to="/admin" class="admin-btn">{{ $t('account.goToAdmin') }}</NuxtLink>
+          <NuxtLink :to="localePath('/admin')" class="admin-btn">{{ $t('account.goToAdmin') }}</NuxtLink>
         </div>
       </section>
 
@@ -72,20 +72,20 @@
           <div v-for="product in favorites" :key="product.id" class="favorite-card">
             <div class="favorite-content">
               <h3 class="favorite-title">
-                <NuxtLink :to="`/p/${product.id}`">{{ product.name }}</NuxtLink>
+                <NuxtLink :to="localePath(`/p/${product.id}`)">{{ product.name }}</NuxtLink>
               </h3>
               <div class="favorite-category">
-                <NuxtLink :to="`/c/${product.category_slug}`" class="category-link">
+                <NuxtLink :to="localePath(`/c/${product.category_slug}`)" class="category-link">
                   {{ product.category_name }}
                 </NuxtLink>
                 <span class="separator">/</span>
-                <NuxtLink :to="`/c/${product.category_slug}/${product.subcategory_slug}`" class="subcategory-link">
+                <NuxtLink :to="localePath(`/c/${product.category_slug}/${product.subcategory_slug}`)" class="subcategory-link">
                   {{ product.subcategory_name }}
                 </NuxtLink>
               </div>
             </div>
             <div class="favorite-actions">
-              <NuxtLink :to="`/p/${product.id}`" class="view-btn">{{ $t('account.favorites.view') }}</NuxtLink>
+              <NuxtLink :to="localePath(`/p/${product.id}`)" class="view-btn">{{ $t('account.favorites.view') }}</NuxtLink>
             </div>
           </div>
         </div>
@@ -94,15 +94,15 @@
           <div class="empty-icon">❤️</div>
           <h3>{{ $t('account.favorites.empty.title') }}</h3>
           <p>{{ $t('account.favorites.empty.description') }}</p>
-          <NuxtLink to="/" class="browse-btn">{{ $t('account.favorites.empty.browse') }}</NuxtLink>
+          <NuxtLink :to="localePath('/')" class="browse-btn">{{ $t('account.favorites.empty.browse') }}</NuxtLink>
         </div>
       </section>
 
       <!-- Admin Actions -->
       <section v-if="me.user.is_admin" class="admin-actions-section">
         <div class="admin-actions-card">
-          <h3>Административные действия</h3>
-          <p>Обновление цен товаров из внешних источников</p>
+          <h3>Admin Actions</h3>
+          <p>Refresh product prices from external sources</p>
 
           <div class="admin-controls">
             <button @click="refreshAllPrices" :disabled="busy" class="refresh-btn">
@@ -112,13 +112,13 @@
               <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
               </svg>
-              Обновить все цены
+              Refresh all prices
             </button>
             <p v-if="adminMessage" class="admin-message">{{ adminMessage }}</p>
           </div>
 
           <div class="admin-tip">
-            <p><strong>Подсказка:</strong> Данные администратора по умолчанию: <code>admin@local</code> / <code>admin123</code></p>
+            <p><strong>Tip:</strong> Default admin credentials: <code>admin@local</code> / <code>admin123</code></p>
           </div>
         </div>
       </section>
@@ -129,19 +129,18 @@
       <!-- Hero Section -->
       <section class="hero-section">
         <div class="hero-content">
-          <h1 class="hero-title">Вход в аккаунт</h1>
-          <p class="hero-subtitle">Войдите или зарегистрируйтесь для доступа к личному кабинету</p>
+          <h1 class="hero-title">Account access</h1>
+          <p class="hero-subtitle">Log in or register to access your account</p>
         </div>
       </section>
 
       <!-- Auth Forms -->
       <section class="auth-section">
         <div class="auth-container">
-          <!-- Login Form -->
-          <div class="auth-card">
+          <div v-if="authMode === 'login'" class="auth-card">
             <div class="auth-header">
-              <h2>Вход</h2>
-              <p>Уже есть аккаунт? Войдите в систему</p>
+              <h2>Login</h2>
+              <p>No account yet? Create one to access your favorites and profile.</p>
             </div>
 
             <form @submit.prevent="login" class="auth-form">
@@ -149,7 +148,7 @@
                 <label for="login-email">Email</label>
                 <input
                   id="login-email"
-                  v-model="email"
+                  v-model="loginEmail"
                   type="email"
                   placeholder="your@email.com"
                   required
@@ -157,28 +156,32 @@
               </div>
 
               <div class="form-group">
-                <label for="login-password">Пароль</label>
+                <label for="login-password">Password</label>
                 <input
                   id="login-password"
-                  v-model="password"
+                  v-model="loginPassword"
                   type="password"
-                  placeholder="Ваш пароль"
+                  placeholder="Your password"
                   required
                 />
               </div>
 
               <button type="submit" :disabled="busy" class="auth-btn">
                 <span v-if="busy" class="loading-spinner small"></span>
-                Войти
+                Login
               </button>
             </form>
+
+            <p class="auth-toggle-text">
+              Don't have an account?
+              <button type="button" class="link-button" @click="authMode = 'register'">Create one now</button>.
+            </p>
           </div>
 
-          <!-- Register Form -->
-          <div class="auth-card">
+          <div v-else class="auth-card">
             <div class="auth-header">
-              <h2>Регистрация</h2>
-              <p>Создайте новый аккаунт</p>
+              <h2>Register</h2>
+              <p>Already have an account? Use the form below to sign in.</p>
             </div>
 
             <form @submit.prevent="register" class="auth-form">
@@ -186,7 +189,7 @@
                 <label for="register-email">Email</label>
                 <input
                   id="register-email"
-                  v-model="email"
+                  v-model="registerEmail"
                   type="email"
                   placeholder="your@email.com"
                   required
@@ -194,12 +197,24 @@
               </div>
 
               <div class="form-group">
-                <label for="register-password">Пароль</label>
+                <label for="register-password">Password</label>
                 <input
                   id="register-password"
-                  v-model="password"
+                  v-model="registerPassword"
                   type="password"
-                  placeholder="Минимум 6 символов"
+                  placeholder="At least 6 characters"
+                  minlength="6"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="register-confirm">Confirm password</label>
+                <input
+                  id="register-confirm"
+                  v-model="registerConfirm"
+                  type="password"
+                  placeholder="Confirm your password"
                   minlength="6"
                   required
                 />
@@ -207,15 +222,20 @@
 
               <button type="submit" :disabled="busy" class="auth-btn secondary">
                 <span v-if="busy" class="loading-spinner small"></span>
-                Зарегистрироваться
+                Register
               </button>
             </form>
+
+            <p class="auth-toggle-text">
+              Already have an account?
+              <button type="button" class="link-button" @click="authMode = 'login'">Sign in instead</button>.
+            </p>
           </div>
         </div>
 
         <!-- Message -->
         <div v-if="message" class="auth-message">
-          <p :class="{ error: message.includes('error'), success: !message.includes('error') }">
+          <p :class="{ error: message.includes('error') || message.includes('match'), success: !message.includes('error') && !message.includes('match') }">
             {{ message }}
           </p>
         </div>
@@ -225,8 +245,13 @@
 </template>
 
 <script setup lang="ts">
-const email = ref('')
-const password = ref('')
+const localePath = useLocalePath()
+const loginEmail = ref('')
+const loginPassword = ref('')
+const registerEmail = ref('')
+const registerPassword = ref('')
+const registerConfirm = ref('')
+const authMode = ref<'login' | 'register'>('login')
 const message = ref('')
 const adminMessage = ref('')
 const busy = ref(false)
@@ -246,7 +271,10 @@ async function login() {
   busy.value = true
   message.value = ''
   try {
-    await $fetch('/api/auth/login', { method: 'POST', body: { email: email.value, password: password.value } })
+    await $fetch('/api/auth/login', {
+      method: 'POST',
+      body: { email: loginEmail.value, password: loginPassword.value },
+    })
     await refreshMe()
     await refreshFavorites()
   } catch (e: any) {
@@ -257,10 +285,18 @@ async function login() {
 }
 
 async function register() {
+  if (registerPassword.value !== registerConfirm.value) {
+    message.value = 'Passwords do not match'
+    return
+  }
+
   busy.value = true
   message.value = ''
   try {
-    await $fetch('/api/auth/register', { method: 'POST', body: { email: email.value, password: password.value } })
+    await $fetch('/api/auth/register', {
+      method: 'POST',
+      body: { email: registerEmail.value, password: registerPassword.value },
+    })
     await refreshMe()
     await refreshFavorites()
   } catch (e: any) {
@@ -296,7 +332,8 @@ async function refreshAllPrices() {
 <style scoped>
 .account-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f8f9fa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .nav-links {
@@ -309,55 +346,48 @@ async function refreshAllPrices() {
 .nav-link {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px solid rgba(47, 95, 155, 0.3);
-  border-radius: 0.5rem;
-  color: #2f5f9b;
-  font-weight: 600;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  font-weight: 500;
   text-decoration: none;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
+  transition: background 0.2s ease;
 }
 
 .nav-link:hover {
-  background: #2f5f9b;
-  color: #fff;
-  border-color: #2f5f9b;
+  background: #f3f4f6;
 }
 
 .nav-link.secondary {
-  border-color: rgba(107, 114, 128, 0.3);
   color: #6b7280;
 }
 
 .nav-link.secondary:hover {
-  background: #6b7280;
-  color: #fff;
-  border-color: #6b7280;
+  background: #f3f4f6;
 }
 
 .hero-section {
-  padding: 3rem 2rem;
+  padding: 2rem;
   text-align: center;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .hero-content {
-  max-width: 800px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
 .hero-title {
-  font-size: 3rem;
-  font-weight: 800;
-  color: #fff;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
 }
 
 .hero-subtitle {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 0;
+  font-size: 1rem;
+  color: #6b7280;
 }
 
 .account-section,
@@ -366,6 +396,72 @@ async function refreshAllPrices() {
 .admin-actions-section,
 .auth-section {
   padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.auth-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+
+.auth-switcher {
+  display: flex;
+  gap: 0;
+  justify-content: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.switch-btn {
+  flex: 1;
+  padding: 1rem 2rem;
+  background: #fff;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  border-bottom: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.switch-btn.active {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+
+.switch-btn:first-child {
+  border-right: none;
+}
+
+.switch-btn.active + .switch-btn {
+  border-left: 1px solid #111827;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.auth-toggle-text {
+  margin-top: 1.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.link-button {
+  border: none;
+  background: none;
+  color: #111827;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
 }
 
 .account-card,
@@ -374,9 +470,109 @@ async function refreshAllPrices() {
 .admin-actions-card,
 .auth-card {
   background: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
-  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.auth-card {
+  padding: 2rem;
+}
+
+.auth-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.auth-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #111827;
+}
+
+.auth-btn {
+  padding: 0.75rem 1.5rem;
+  background: #111827;
+  color: #fff;
+  border: 1px solid #111827;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-top: 1rem;
+}
+
+.auth-btn:hover:not(:disabled) {
+  background: #374151;
+}
+
+.auth-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-btn.secondary {
+  background: #fff;
+  color: #111827;
+}
+
+.auth-btn.secondary:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.auth-message {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.auth-message p {
+  padding: 0.75rem;
+  font-weight: 500;
+}
+
+.auth-message p.success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.auth-message p.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
 }
 
 .account-header {
@@ -390,8 +586,7 @@ async function refreshAllPrices() {
 .user-avatar {
   width: 4rem;
   height: 4rem;
-  background: #2f5f9b;
-  border-radius: 50%;
+  background: #111827;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -405,7 +600,7 @@ async function refreshAllPrices() {
 
 .user-info h2 {
   margin: 0 0 0.5rem 0;
-  color: #1f2a43;
+  color: #111827;
   font-size: 1.5rem;
 }
 
@@ -414,7 +609,6 @@ async function refreshAllPrices() {
   padding: 0.25rem 0.75rem;
   background: #fef3c7;
   color: #92400e;
-  border-radius: 9999px;
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -430,8 +624,7 @@ async function refreshAllPrices() {
   padding: 0.75rem 1.5rem;
   background: #dc2626;
   color: #fff;
-  border: none;
-  border-radius: 0.5rem;
+  border: 1px solid #dc2626;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -460,7 +653,7 @@ async function refreshAllPrices() {
 
 .admin-header h3 {
   margin: 0 0 0.5rem 0;
-  color: #1f2a43;
+  color: #111827;
   font-size: 1.3rem;
 }
 
@@ -472,16 +665,16 @@ async function refreshAllPrices() {
 .admin-btn {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: #2f5f9b;
+  background: #111827;
   color: #fff;
-  border-radius: 0.5rem;
+  border: 1px solid #111827;
   text-decoration: none;
   font-weight: 600;
   transition: background 0.2s ease;
 }
 
 .admin-btn:hover {
-  background: #1f4770;
+  background: #374151;
 }
 
 .section-header {
@@ -491,7 +684,7 @@ async function refreshAllPrices() {
 
 .section-header h2 {
   margin: 0 0 0.5rem 0;
-  color: #1f2a43;
+  color: #111827;
   font-size: 2rem;
 }
 
@@ -510,8 +703,7 @@ async function refreshAllPrices() {
   width: 3rem;
   height: 3rem;
   border: 4px solid #e5e7eb;
-  border-top: 4px solid #2f5f9b;
-  border-radius: 50%;
+  border-top: 4px solid #111827;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
 }
@@ -717,7 +909,6 @@ async function refreshAllPrices() {
 
 .auth-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 2rem;
   max-width: 800px;
   margin: 0 auto;

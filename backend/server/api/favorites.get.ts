@@ -1,5 +1,4 @@
 import { createError } from 'h3'
-import { createError } from 'h3'
 import { mongoDb } from '../utils/mongo'
 import { getUserIdFromEvent } from '../utils/auth'
 
@@ -20,7 +19,19 @@ export default defineEventHandler(async (event) => {
   if (!productIds.length) return []
 
   const products = await mongo.collection('products')
-    .find({ id: { $in: productIds } })
+    .find(
+      { id: { $in: productIds } },
+      {
+        projection: {
+          _id: 0,
+          id: 1,
+          name: 1,
+          category_slug: 1,
+          subcategory_slug: 1,
+          image_url: 1,
+        },
+      }
+    )
     .sort({ name: 1 })
     .toArray()
 

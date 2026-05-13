@@ -48,7 +48,10 @@ export default defineEventHandler(async (event) => {
 
   pipeline.push({
     $project: {
-      prices: 0
+      _id: 0,
+      prices: 0,
+      category_name: 0,
+      subcategory_name: 0,
     }
   })
 

@@ -1,22 +1,22 @@
 <template>
   <main>
     <div class="breadcrumb">
-      <NuxtLink to="/">Главная</NuxtLink>
+      <NuxtLink :to="localePath('/')">Главная</NuxtLink>
       <template v-if="product">
         <span> / </span>
-        <NuxtLink :to="`/c/${product.category_slug}`">
+        <NuxtLink :to="localePath(`/c/${product.category_slug}`)">
           {{ product.category_name }}
         </NuxtLink>
         <span> / </span>
-        <NuxtLink :to="`/c/${product.category_slug}/${product.subcategory_slug}`">
+        <NuxtLink :to="localePath(`/c/${product.category_slug}/${product.subcategory_slug}`)">
           {{ product.subcategory_name }}
         </NuxtLink>
       </template>
     </div>
 
     <div class="nav-links">
-      <NuxtLink :to="product ? `/c/${product.category_slug}/${product.subcategory_slug}` : '/'" class="nav-link secondary">← К товарам</NuxtLink>
-      <NuxtLink to="/account" class="nav-link">Личный кабинет</NuxtLink>
+      <NuxtLink :to="product ? localePath(`/c/${product.category_slug}/${product.subcategory_slug}`) : localePath('/')" class="nav-link secondary">← К товарам</NuxtLink>
+      <NuxtLink :to="localePath('/account')" class="nav-link">Личный кабинет</NuxtLink>
     </div>
 
     <template v-if="product">
@@ -107,7 +107,7 @@
       <div class="error-card">
         <h1>Товар не найден</h1>
         <p>Неизвестный ID товара: {{ productId }}</p>
-        <NuxtLink to="/" class="back-link">Вернуться на главную</NuxtLink>
+        <NuxtLink :to="localePath('/')" class="back-link">Вернуться на главную</NuxtLink>
       </div>
     </template>
 
@@ -165,6 +165,7 @@
 <script setup lang="ts">
 import { ref, computed, watchEffect } from 'vue'
 const route = useRoute()
+const localePath = useLocalePath()
 const productId = computed(() => String(route.params.id || ''))
 
 const { data: product } = await useFetch(`/api/products/${productId.value}`)
@@ -222,7 +223,7 @@ const compareModalOpen = ref(false)
 const compareError = ref('')
 
 function loadCompare() {
-  if (!compareKey.value) return
+  if (!compareKey.value || !process.client) return
   const stored = localStorage.getItem(compareKey.value)
   if (stored) {
     try {
@@ -234,7 +235,7 @@ function loadCompare() {
 }
 
 watchEffect(() => {
-  if (compareKey.value) {
+  if (compareKey.value && process.client) {
     loadCompare()
   }
 })
@@ -263,7 +264,7 @@ function closeCompareModal() {
 function clearCompare() {
   compareList.value = []
   compareError.value = ''
-  if (compareKey.value) {
+  if (compareKey.value && process.client) {
     localStorage.removeItem(compareKey.value)
   }
 }

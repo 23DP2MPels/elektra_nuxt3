@@ -33,18 +33,18 @@ export default defineNuxtConfig({
   i18n: {
     langDir: 'locales',
     locales: [
+      { code: 'en', name: 'English', iso: 'en-US', file: 'en.json' },
       { code: 'ru', name: 'Русский', iso: 'ru-RU', file: 'ru.json' },
-      { code: 'lv', name: 'Latviešu', iso: 'lv-LV', file: 'lv.json' },
-      { code: 'en', name: 'English', iso: 'en-US', file: 'en.json' }
+      { code: 'lv', name: 'Latviešu', iso: 'lv-LV', file: 'lv.json' }
     ],
-    defaultLocale: 'ru',
+    defaultLocale: 'en',
     strategy: 'prefix_except_default',
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_redirected',
       redirectOn: 'root',
       alwaysRedirect: false,
-      fallbackLocale: 'ru'
+      fallbackLocale: 'en'
     },
     baseUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   }

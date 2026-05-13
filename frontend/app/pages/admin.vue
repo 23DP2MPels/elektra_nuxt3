@@ -1,6 +1,6 @@
 <template>
   <main>
-    <p><NuxtLink to="/account">← Back to account</NuxtLink></p>
+    <p><NuxtLink :to="localePath('/account')">← Back to account</NuxtLink></p>
     <h1>Admin panel</h1>
 
     <div v-if="loading">Loading admin data...</div>
@@ -148,6 +148,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
+const localePath = useLocalePath()
 
 const loading = ref(true)
 const saving = ref(false)

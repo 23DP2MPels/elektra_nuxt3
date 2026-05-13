@@ -2,8 +2,8 @@
   <main class="search-page">
     <!-- Navigation -->
     <nav class="nav-links">
-      <NuxtLink to="/" class="nav-link">{{ $t('search.nav.home') }}</NuxtLink>
-      <NuxtLink to="/account" class="nav-link secondary">{{ $t('search.nav.account') }}</NuxtLink>
+      <NuxtLink :to="localePath('/')" class="nav-link">{{ $t('search.nav.home') }}</NuxtLink>
+      <NuxtLink :to="localePath('/account')" class="nav-link secondary">{{ $t('search.nav.account') }}</NuxtLink>
     </nav>
 
     <!-- Hero Section -->
@@ -66,14 +66,14 @@
               </div>
               <div class="result-content">
                 <h3 class="result-title">
-                  <NuxtLink :to="`/p/${result.id}`">{{ result.name }}</NuxtLink>
+                  <NuxtLink :to="localePath(`/p/${result.id}`)">{{ result.name }}</NuxtLink>
                 </h3>
                 <div class="result-category">
-                  <NuxtLink :to="`/c/${result.category_slug}`" class="category-link">
+                  <NuxtLink :to="localePath(`/c/${result.category_slug}`)" class="category-link">
                     {{ result.category_name }}
                   </NuxtLink>
                   <span class="category-separator">/</span>
-                  <NuxtLink :to="`/c/${result.category_slug}/${result.subcategory_slug}`" class="subcategory-link">
+                  <NuxtLink :to="localePath(`/c/${result.category_slug}/${result.subcategory_slug}`)" class="subcategory-link">
                     {{ result.subcategory_name }}
                   </NuxtLink>
                 </div>
@@ -83,7 +83,7 @@
                 </div>
               </div>
               <div class="result-actions">
-                <NuxtLink :to="`/p/${result.id}`" class="view-btn">
+                <NuxtLink :to="localePath(`/p/${result.id}`)" class="view-btn">
                   Посмотреть
                 </NuxtLink>
               </div>
@@ -110,6 +110,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const router = useRouter()
+const localePath = useLocalePath()
 
 const q = ref(String(route.query.q || ''))
 const query = computed(() => String(route.query.q || '').trim())
@@ -141,7 +142,9 @@ watchEffect(() => {
 })
 
 function applySearch() {
-  router.push({ path: '/search', query: q.value.trim() ? { q: q.value.trim() } : {} })
+  const path = localePath('/search')
+  const queryString = q.value.trim() ? `?q=${encodeURIComponent(q.value.trim())}` : ''
+  router.push(path + queryString)
 }
 
 function getResultImage(result: any) {
@@ -190,7 +193,6 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
   padding: 0.65rem 1rem;
   background: #fff;
   border: 1px solid #d1d5db;
-  border-radius: 0.75rem;
   color: #111827;
   font-weight: 600;
   text-decoration: none;
@@ -245,7 +247,6 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
 
 .search-form {
   background: #fff;
-  border-radius: 1rem;
   border: 1px solid #e2e8f0;
   padding: 1.75rem;
 }
@@ -260,7 +261,6 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
   flex: 1;
   padding: 0.95rem 1rem;
   border: 1px solid #d1d5db;
-  border-radius: 0.75rem;
   font-size: 1rem;
   transition: border-color 0.2s ease;
 }
@@ -268,7 +268,6 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
 .search-input:focus {
   outline: none;
   border-color: #94a3b8;
-  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2);
 }
 
 .search-btn {
@@ -278,8 +277,7 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
   padding: 0.95rem 1.5rem;
   background: #111827;
   color: #fff;
-  border: none;
-  border-radius: 0.75rem;
+  border: 1px solid #111827;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
@@ -310,7 +308,6 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
 .no-results {
   text-align: center;
   background: #fff;
-  border-radius: 1rem;
   border: 1px solid #e2e8f0;
   padding: 3rem 2rem;
   max-width: 520px;
@@ -322,7 +319,6 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
   height: 3rem;
   border: 4px solid #e5e7eb;
   border-top: 4px solid #111827;
-  border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
 }
@@ -341,9 +337,7 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
 
 .results-content {
   background: #fff;
-  border-radius: 1rem;
   border: 1px solid #e2e8f0;
-  overflow: hidden;
 }
 
 .results-header {
@@ -382,21 +376,18 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
   gap: 1rem;
   padding: 1.5rem;
   border: 1px solid #e2e8f0;
-  border-radius: 1rem;
   background: #fff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .result-card:hover {
   border-color: #cbd5e1;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 .result-image-container {
   width: 120px;
   height: 120px;
   background: #f8fafc;
-  border-radius: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;

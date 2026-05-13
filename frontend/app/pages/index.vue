@@ -6,15 +6,15 @@
     </div>
 
     <div class="nav-links">
-      <NuxtLink to="/search" class="nav-link">{{ $t('catalog.search') }}</NuxtLink>
-      <NuxtLink to="/account" class="nav-link">{{ $t('catalog.account') }}</NuxtLink>
+      <NuxtLink :to="localePath('/search')" class="nav-link">{{ $t('catalog.search') }}</NuxtLink>
+      <NuxtLink :to="localePath('/account')" class="nav-link">{{ $t('catalog.account') }}</NuxtLink>
     </div>
 
     <div v-if="loading" class="loading">{{ $t('catalog.loading') }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else class="categories-grid">
       <div v-for="c in categories" :key="c.category_slug" class="category-card">
-        <NuxtLink :to="`/c/${c.category_slug}`" class="category-link">
+        <NuxtLink :to="localePath(`/c/${c.category_slug}`)" class="category-link">
           <h3>{{ c.category_name }}</h3>
           <p class="category-count">{{ c.productCount }} {{ $t('catalog.products') }}</p>
         </NuxtLink>
@@ -24,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+const localePath = useLocalePath()
 const categories = ref<Array<{ category_slug: string; category_name: string; productCount: number }>>([])
 const loading = ref(true)
 const error = ref('')
@@ -72,7 +73,6 @@ try {
   padding: 0.85rem 1.4rem;
   background: #fff;
   border: 1px solid #d1d5db;
-  border-radius: 0.85rem;
   color: #111827;
   font-weight: 600;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
@@ -92,13 +92,11 @@ try {
 .category-card {
   background: #fff;
   border: 1px solid #e2e8f0;
-  border-radius: 1rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .category-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  background: #f8fafc;
 }
 
 .category-link {
@@ -129,7 +127,6 @@ try {
   color: #991b1b;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 0.85rem;
   padding: 1rem;
   text-align: center;
 }

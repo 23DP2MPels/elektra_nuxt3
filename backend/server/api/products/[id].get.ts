@@ -11,7 +11,11 @@ export default defineEventHandler(async (event) => {
   }
 
   return {
-    ...row,
+    id: row.id,
+    name: row.name,
+    category_slug: row.category_slug,
+    subcategory_slug: row.subcategory_slug,
+    specs_json: row.specs_json,
     specs: JSON.parse(row.specs_json),
   }
 })

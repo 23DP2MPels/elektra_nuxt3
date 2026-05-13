@@ -1,7 +1,7 @@
 <template>
   <main>
     <div class="breadcrumb">
-      <NuxtLink to="/">Главная</NuxtLink>
+      <NuxtLink :to="localePath('/')">Главная</NuxtLink>
       <span> / </span>
       <span>{{ category?.category_name }}</span>
     </div>
@@ -17,7 +17,7 @@
 
       <div class="subcategories-grid">
         <div v-for="s in category.subcategories" :key="s.subcategory_slug" class="subcategory-card">
-          <NuxtLink :to="`/c/${category.category_slug}/${s.subcategory_slug}`" class="subcategory-link">
+          <NuxtLink :to="localePath(`/c/${category.category_slug}/${s.subcategory_slug}`)" class="subcategory-link">
             <h3>{{ s.subcategory_name }}</h3>
             <p class="subcategory-count">{{ s.productCount }} товаров</p>
           </NuxtLink>
@@ -29,13 +29,14 @@
       <div class="error-card">
         <h1>Категория не найдена</h1>
         <p>Неизвестная категория: {{ categorySlug }}</p>
-        <NuxtLink to="/" class="back-link">Вернуться на главную</NuxtLink>
+        <NuxtLink :to="localePath('/')" class="back-link">Вернуться на главную</NuxtLink>
       </div>
     </template>
   </main>
 </template>
 
 <script setup lang="ts">
+const localePath = useLocalePath()
 const route = useRoute()
 const categorySlug = computed(() => String(route.params.category || ''))
 

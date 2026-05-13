@@ -1,9 +1,9 @@
 <template>
   <main>
     <div class="breadcrumb">
-      <NuxtLink to="/">Главная</NuxtLink>
+      <NuxtLink :to="localePath('/')">Главная</NuxtLink>
       <span> / </span>
-      <NuxtLink :to="`/c/${categorySlug}`">{{ categoryName }}</NuxtLink>
+      <NuxtLink :to="localePath(`/c/${categorySlug}`)">{{ categoryName }}</NuxtLink>
       <span> / </span>
       <span>{{ subcategoryName }}</span>
     </div>
@@ -73,7 +73,7 @@
           <template v-if="filteredProducts.length">
             <div class="products-grid">
               <div v-for="p in filteredProducts" :key="p.id" class="product-card">
-                <NuxtLink :to="`/p/${p.id}`" class="product-link">
+                <NuxtLink :to="localePath(`/p/${p.id}`)" class="product-link">
                   <div class="product-image-container">
                     <img :src="getProductImage(p)" :alt="p.name" class="product-preview" @error="onImageError" />
                   </div>
@@ -110,7 +110,7 @@
         <h1>Подкатегория не найдена</h1>
         <p>Категория: {{ categorySlug }}</p>
         <p>Подкатегория: {{ subcategorySlug }}</p>
-        <NuxtLink to="/" class="back-link">Вернуться на главную</NuxtLink>
+        <NuxtLink :to="localePath('/')" class="back-link">Вернуться на главную</NuxtLink>
       </div>
     </template>
 
@@ -167,6 +167,7 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, watchEffect, onMounted } from 'vue'
+const localePath = useLocalePath()
 
 const route = useRoute()
 const categorySlug = computed(() => String(route.params.category || ''))

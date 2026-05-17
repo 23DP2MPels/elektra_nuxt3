@@ -1,11 +1,17 @@
 <script setup lang="ts">
 const switchLocalePath = useSwitchLocalePath()
 const { locales, locale } = useI18n()
+const selectedLanguageCookie = useCookie('i18n_redirected')
 
 const currentLocaleName = computed(() => {
   const current = locales.value.find(l => l.code === locale.value)
   return current?.name || 'English'
 })
+
+function selectLanguage(code: string) {
+  localStorage.setItem('selected_language', code)
+  selectedLanguageCookie.value = code
+}
 
 // Load saved language from localStorage on mount
 onMounted(() => {
@@ -36,7 +42,7 @@ onMounted(() => {
             v-for="lang in locales"
             :key="lang.code"
             :to="switchLocalePath(lang.code)"
-            @click="localStorage.setItem('selected_language', lang.code)"
+            @click="selectLanguage(lang.code)"
           >
             <v-list-item-title>{{ lang.name }}</v-list-item-title>
           </v-list-item>

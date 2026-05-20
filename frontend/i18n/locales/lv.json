@@ -1,4 +1,65 @@
 {
+  "product": {
+    "nav": {
+      "home": "Galvenā",
+      "backToProducts": "← Atpakaļ pie precēm",
+      "myProfile": "Mans profils"
+    },
+    "specs": {
+      "title": "Tehniskā specifikācija"
+    },
+    "favorites": {
+      "title": "Izlase",
+      "loading": "Ielādē...",
+      "remove": "Izņemt no izlases",
+      "add": "Pievienot izlasei"
+    },
+    "prices": {
+      "title": "Cenas",
+      "refreshing": "Atjaunina...",
+      "refresh": "Atjaunot cenas",
+      "loading": "Ielādē cenas...",
+      "openStore": "Atvērt veikalu jaunā cilnē",
+      "toStore": "🛒 Uz veikalu →",
+      "previousPrice": "Iepriekšējā cena:",
+      "error": "Kļūda:",
+      "updated": "Atjaunots:"
+    },
+    "notFound": {
+      "title": "Prece nav atrasta",
+      "unknownId": "Nezināms preces ID:",
+      "backToHome": "Atgriezties uz sākumlapu"
+    },
+    "compare": {
+      "selected": "Izvēlētas",
+      "of": "no",
+      "products": "precēm",
+      "compareSelected": "Salīdzināt izvēlēto",
+      "clear": "Notīrīt",
+      "selectAtLeastTwo": "Izvēlieties vismaz divas preces, lai salīdzinātu.",
+      "title": "Preču salīdzināšana",
+      "parameter": "Parametrs"
+    },
+    "specsMap": {
+      "battery_hours": "Akumulatora darbības laiks (st.)",
+      "battery_mah": "Akumulatora ietilpība (mAh)",
+      "battery_wh": "Akumulatora ietilpība (Wh)",
+      "screen_inch": "Ekrāna diagonāle (collas)",
+      "ram_gb": "Operatīvā atmiņa (GB)",
+      "storage_gb": "Iebūvētā atmiņa (GB)",
+      "weight_g": "Svars (g)",
+      "weight_kg": "Svars (kg)",
+      "power_w": "Jauda (W)",
+      "resolution": "Ekrāna izšķirtspēja",
+      "refresh_hz": "Ekrāna atsvaidzes intensitāte (Hz)"
+    },
+    "favoriteMessages": {
+      "added": "(pievienots)",
+      "removed": "(izņemts)",
+      "authRequired": "Nepieciešama autorizācija"
+    },
+    "refreshError": "Atjaunošana neizdevās"
+  },
   "catalog": {
     "title": "Preču katalogs Elektra",
     "subtitle": "Atrodiet vajadzīgo preci ērtās kategorijās",

@@ -1,4 +1,65 @@
 {
+  "product": {
+    "nav": {
+      "home": "Home",
+      "backToProducts": "← Back to products",
+      "myProfile": "My profile"
+    },
+    "specs": {
+      "title": "Technical specification"
+    },
+    "favorites": {
+      "title": "Favorites",
+      "loading": "Loading...",
+      "remove": "Remove from favorites",
+      "add": "Add to favorites"
+    },
+    "prices": {
+      "title": "Prices",
+      "refreshing": "Refreshing...",
+      "refresh": "Refresh prices",
+      "loading": "Loading prices...",
+      "openStore": "Open store in new tab",
+      "toStore": "🛒 To store →",
+      "previousPrice": "Previous price:",
+      "error": "Error:",
+      "updated": "Updated:"
+    },
+    "notFound": {
+      "title": "Product not found",
+      "unknownId": "Unknown product ID:",
+      "backToHome": "Return to home page"
+    },
+    "compare": {
+      "selected": "Selected",
+      "of": "of",
+      "products": "products",
+      "compareSelected": "Compare selected",
+      "clear": "Clear",
+      "selectAtLeastTwo": "Select at least two products to compare.",
+      "title": "Product comparison",
+      "parameter": "Parameter"
+    },
+    "specsMap": {
+      "battery_hours": "Battery life (hours)",
+      "battery_mah": "Battery capacity (mAh)",
+      "battery_wh": "Battery capacity (Wh)",
+      "screen_inch": "Screen diagonal (inches)",
+      "ram_gb": "RAM (GB)",
+      "storage_gb": "Built-in storage (GB)",
+      "weight_g": "Weight (g)",
+      "weight_kg": "Weight (kg)",
+      "power_w": "Power (W)",
+      "resolution": "Screen resolution",
+      "refresh_hz": "Screen refresh rate (Hz)"
+    },
+    "favoriteMessages": {
+      "added": "(added)",
+      "removed": "(removed)",
+      "authRequired": "Authorization required"
+    },
+    "refreshError": "Refresh failed"
+  },
   "catalog": {
     "title": "Product Catalog Elektra",
     "subtitle": "Find the product you need in convenient categories",

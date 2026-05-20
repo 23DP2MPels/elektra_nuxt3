@@ -375,7 +375,7 @@ function formatPrice(cents: number | null | undefined, currency = 'EUR') {
   }).format(cents / 100)
 }
 
-const compareKey = computed(() => `compare_${categorySlug.value}`)
+const compareKey = computed(() => `compare_${categorySlug.value}_${subcategorySlug.value}`)
 
 const compareList = ref<any[]>([])
 
@@ -601,6 +601,8 @@ function facetName(key: string): string {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .input-label {
@@ -616,6 +618,9 @@ function facetName(key: string): string {
   border-radius: 0.5rem;
   background: #fff;
   font-size: 0.9rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .range-info {

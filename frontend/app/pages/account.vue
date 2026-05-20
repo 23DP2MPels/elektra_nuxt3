@@ -52,33 +52,66 @@
             <form @submit.prevent="changePassword" class="password-form">
               <div class="form-group">
                 <label for="current-pass">{{ $t('account.currentPassword') }}</label>
-                <input
-                  id="current-pass"
-                  v-model="passwordOld"
-                  type="password"
-                  placeholder="Enter your current password"
-                  required
-                />
+                <div class="password-input-wrapper">
+                  <input
+                    id="current-pass"
+                    v-model="passwordOld"
+                    :type="showOldPassword ? 'text' : 'password'"
+                    placeholder="Enter your current password"
+                    required
+                  />
+                  <button type="button" class="password-toggle" @click="showOldPassword = !showOldPassword">
+                    <svg v-if="!showOldPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               <div class="form-group">
                 <label for="new-pass">{{ $t('account.newPassword') }}</label>
-                <input
-                  id="new-pass"
-                  v-model="passwordNew"
-                  type="password"
-                  placeholder="Enter new password (min 6 characters)"
-                  required
-                />
+                <div class="password-input-wrapper">
+                  <input
+                    id="new-pass"
+                    v-model="passwordNew"
+                    :type="showNewPassword ? 'text' : 'password'"
+                    placeholder="Enter new password (min 6 characters)"
+                    required
+                  />
+                  <button type="button" class="password-toggle" @click="showNewPassword = !showNewPassword">
+                    <svg v-if="!showNewPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               <div class="form-group">
                 <label for="confirm-pass">{{ $t('account.confirmPassword') }}</label>
-                <input
-                  id="confirm-pass"
-                  v-model="passwordConfirm"
-                  type="password"
-                  placeholder="Confirm new password"
-                  required
-                />
+                <div class="password-input-wrapper">
+                  <input
+                    id="confirm-pass"
+                    v-model="passwordConfirm"
+                    :type="showConfirmPassword ? 'text' : 'password'"
+                    placeholder="Confirm new password"
+                    required
+                  />
+                  <button type="button" class="password-toggle" @click="showConfirmPassword = !showConfirmPassword">
+                    <svg v-if="!showConfirmPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               <div class="form-actions">
                 <button type="submit" :disabled="busy" class="submit-btn">
@@ -228,13 +261,24 @@
 
               <div class="form-group">
                 <label for="login-password">Password</label>
-                <input
-                  id="login-password"
-                  v-model="loginPassword"
-                  type="password"
-                  placeholder="Your password"
-                  required
-                />
+                <div class="password-input-wrapper">
+                  <input
+                    id="login-password"
+                    v-model="loginPassword"
+                    :type="showLoginPassword ? 'text' : 'password'"
+                    placeholder="Your password"
+                    required
+                  />
+                  <button type="button" class="password-toggle" @click="showLoginPassword = !showLoginPassword">
+                    <svg v-if="!showLoginPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <button type="submit" :disabled="busy" class="auth-btn">
@@ -269,26 +313,48 @@
 
               <div class="form-group">
                 <label for="register-password">Password</label>
-                <input
-                  id="register-password"
-                  v-model="registerPassword"
-                  type="password"
-                  placeholder="At least 6 characters"
-                  minlength="6"
-                  required
-                />
+                <div class="password-input-wrapper">
+                  <input
+                    id="register-password"
+                    v-model="registerPassword"
+                    :type="showRegisterPassword ? 'text' : 'password'"
+                    placeholder="At least 6 characters"
+                    minlength="6"
+                    required
+                  />
+                  <button type="button" class="password-toggle" @click="showRegisterPassword = !showRegisterPassword">
+                    <svg v-if="!showRegisterPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <div class="form-group">
                 <label for="register-confirm">Confirm password</label>
-                <input
-                  id="register-confirm"
-                  v-model="registerConfirm"
-                  type="password"
-                  placeholder="Confirm your password"
-                  minlength="6"
-                  required
-                />
+                <div class="password-input-wrapper">
+                  <input
+                    id="register-confirm"
+                    v-model="registerConfirm"
+                    :type="showRegisterConfirm ? 'text' : 'password'"
+                    placeholder="Confirm your password"
+                    minlength="6"
+                    required
+                  />
+                  <button type="button" class="password-toggle" @click="showRegisterConfirm = !showRegisterConfirm">
+                    <svg v-if="!showRegisterConfirm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <button type="submit" :disabled="busy" class="auth-btn secondary">
@@ -336,6 +402,14 @@ const passwordNew = ref('')
 const passwordConfirm = ref('')
 const showChangePassword = ref(false)
 const busy = ref(false)
+
+// Password visibility toggles
+const showLoginPassword = ref(false)
+const showRegisterPassword = ref(false)
+const showRegisterConfirm = ref(false)
+const showOldPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
 
 // Network error handling
 const isNetworkError = ref(false)
@@ -702,6 +776,40 @@ async function refreshAllPrices() {
   border: 1px solid #d1d5db;
   font-size: 1rem;
   transition: border-color 0.2s ease;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  flex: 1;
+  padding-right: 2.5rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: #111827;
+}
+
+.password-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .form-group input:focus {

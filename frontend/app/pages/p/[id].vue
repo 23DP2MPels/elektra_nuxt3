@@ -1,7 +1,7 @@
 <template>
   <main>
     <div class="breadcrumb">
-      <NuxtLink :to="localePath('/')">Galvenā</NuxtLink>
+      <NuxtLink :to="localePath('/')">{{ $t('product.nav.home') }}</NuxtLink>
       <template v-if="product">
         <span> / </span>
         <NuxtLink :to="localePath(`/c/${product.category_slug}`)">
@@ -15,8 +15,8 @@
     </div>
 
     <div class="nav-links">
-      <NuxtLink :to="product ? localePath(`/c/${product.category_slug}/${product.subcategory_slug}`) : localePath('/')" class="nav-link secondary">← Atpakaļ pie precēm</NuxtLink>
-      <NuxtLink :to="localePath('/account')" class="nav-link">Mans profils</NuxtLink>
+      <NuxtLink :to="product ? localePath(`/c/${product.category_slug}/${product.subcategory_slug}`) : localePath('/')" class="nav-link secondary">{{ $t('product.nav.backToProducts') }}</NuxtLink>
+      <NuxtLink :to="localePath('/account')" class="nav-link">{{ $t('product.nav.myProfile') }}</NuxtLink>
     </div>
 
     <div v-if="isNetworkError" class="network-error">
@@ -42,7 +42,7 @@
 
           <div class="product-content">
             <section class="specs-section">
-              <h2>Tehniskā specifikācija</h2>
+              <h2>{{ $t('product.specs.title') }}</h2>
               <div class="specs-grid">
                 <div v-for="[key, value] in specEntries" :key="key" class="spec-row">
                   <span class="spec-key">{{ key }}</span>
@@ -52,13 +52,13 @@
             </section>
 
             <section class="favorites-section">
-              <h2>Izlase</h2>
+              <h2>{{ $t('product.favorites.title') }}</h2>
               <div class="favorites-controls">
                 <button @click="toggleFavorite" :disabled="favBusy" class="favorite-btn" :class="{ active: isFavorite }">
-                  <span v-if="favBusy">Ielādē...</span>
-                  <span v-else>{{ isFavorite ? 'Izņemt no izlases' : 'Pievienot izlasei' }}</span>
+                  <span v-if="favBusy">{{ $t('product.favorites.loading') }}</span>
+                  <span v-else>{{ isFavorite ? $t('product.favorites.remove') : $t('product.favorites.add') }}</span>
                 </button>
-                <span v-if="favMsg" class="fav-message" :class="{ success: favMsg.includes('added') || favMsg.includes('pievienots'), error: favMsg.includes('kļūda') || favMsg.includes('Login') || favMsg.includes('error') }">
+                <span v-if="favMsg" class="fav-message" :class="{ success: favMsg === $t('product.favoriteMessages.added') || favMsg === $t('product.favoriteMessages.removed'), error: favMsg !== $t('product.favoriteMessages.added') && favMsg !== $t('product.favoriteMessages.removed') }">
                   {{ favMsg }}
                 </span>
               </div>
@@ -69,15 +69,15 @@
 
         <aside class="product-sidebar">
           <div class="prices-card">
-            <h3>Cenas</h3>
+            <h3>{{ $t('product.prices.title') }}</h3>
             <div class="price-controls">
               <button style="display: none" @click="refreshPrices" :disabled="pricesLoading || refreshing" class="refresh-btn">
-                {{ refreshing ? 'Atjaunina...' : 'Atjaunot cenas' }}
+                {{ refreshing ? $t('product.prices.refreshing') : $t('product.prices.refresh') }}
               </button>
               <span v-if="refreshError" class="error">{{ refreshError }}</span>
             </div>
 
-            <div v-if="pricesLoading" class="loading">Ielādē cenas...</div>
+            <div v-if="pricesLoading" class="loading">{{ $t('product.prices.loading') }}</div>
             <div v-else class="prices-list">
               <a 
                 v-for="p in prices" 
@@ -87,25 +87,26 @@
                 rel="noopener noreferrer"
                 class="price-item clickable-store-card" 
                 :class="{ ok: p.ok, error: !p.ok }"
-                title="Atvērt veikalu jaunā cilnē"
+                :title="$t('product.prices.openStore')"
               >
                 <div class="price-header">
                   <div class="store-info-group">
                     <img :src="storeLogos[p.storeId] || defaultStoreLogo" :alt="p.storeName" class="store-logo" />
                     <strong>{{ p.storeName }}</strong>
                   </div>
-                  <span class="external-id-badge">🛒 Uz veikalu →</span>
+                  <span class="external-id-badge">{{ $t('product.prices.toStore') }}</span>
                 </div>
                 <div class="price-value">
                   {{ formatPrice(p.priceCents, p.currency) }}
                 </div>
                 <div class="price-meta">
                   <span v-if="p.oldPriceCents !== null" class="old-price">
-                    Iepriekšējā cena: {{ formatPrice(p.oldPriceCents, p.currency) }}
+                    {{ $t('product.prices.previousPrice') }} {{ formatPrice(p.oldPriceCents, p.currency) }}
                   </span>
-                  <span v-if="p.error" class="price-error">Kļūda: {{ p.error }}</span>
+                  <br></br>
+                  <span v-if="p.error" class="price-error">{{ $t('product.prices.error') }} {{ p.error }}</span>
                   <span v-if="p.fetchedAt" class="price-date">
-                    Atjaunots: {{ formatDate(p.fetchedAt) }}
+                    {{ $t('product.prices.updated') }} {{ formatDate(p.fetchedAt) }}
                   </span>
                 </div>
               </a>
@@ -117,9 +118,9 @@
 
     <template v-else>
       <div class="error-card">
-        <h1>Prece nav atrasta</h1>
-        <p>Nezināms preces ID: {{ productId }}</p>
-        <NuxtLink :to="localePath('/')" class="back-link">Atgriezties uz sākumlapu</NuxtLink>
+        <h1>{{ $t('product.notFound.title') }}</h1>
+        <p>{{ $t('product.notFound.unknownId') }} {{ productId }}</p>
+        <NuxtLink :to="localePath('/')" class="back-link">{{ $t('product.notFound.backToHome') }}</NuxtLink>
       </div>
     </template>
 
@@ -128,13 +129,13 @@
         <div v-for="item in compareList" :key="item.id" class="compare-item">
           <img :src="item.image_url || getDefaultImage(item.subcategory_slug || '')" :alt="item.image_alt || item.name" />
         </div>
-        <span class="compare-summary">Izvēlētas {{ compareList.length }} no {{ compareCountLimit }} precēm</span>
+        <span class="compare-summary">{{ $t('product.compare.selected') }} {{ compareList.length }} {{ $t('product.compare.of') }} {{ compareCountLimit }} {{ $t('product.compare.products') }}</span>
       </div>
       <div class="compare-actions">
         <button class="compare-open-btn" @click="openCompareModal" :disabled="compareList.length < 2">
-          Salīdzināt izvēlēto
+          {{ $t('product.compare.compareSelected') }}
         </button>
-        <button class="compare-clear-btn" @click="clearCompare">Notīrīt</button>
+        <button class="compare-clear-btn" @click="clearCompare">{{ $t('product.compare.clear') }}</button>
       </div>
       <p v-if="compareError" class="compare-error">{{ compareError }}</p>
     </div>
@@ -142,7 +143,7 @@
     <div v-if="compareModalOpen" class="compare-modal-backdrop" @click.self="closeCompareModal">
       <div class="compare-modal">
         <div class="compare-modal-header">
-          <h2>Preču salīdzināšana</h2>
+          <h2>{{ $t('product.compare.title') }}</h2>
           <button class="close-modal" @click="closeCompareModal">×</button>
         </div>
         <div class="compare-modal-thumbs">
@@ -155,7 +156,7 @@
           <table class="compare-table">
             <thead>
               <tr>
-                <th>Parametrs</th>
+                <th>{{ $t('product.compare.parameter') }}</th>
                 <th v-for="item in compareList" :key="item.id">{{ item.name }}</th>
               </tr>
             </thead>
@@ -254,7 +255,7 @@ const imageUrl = computed(() => {
   return (product.value as any)?.image_url || getDefaultImage((product.value as any)?.subcategory_slug || '')
 })
 
-const compareKey = computed(() => product.value ? `compare_${product.value.category_slug}` : '')
+const compareKey = computed(() => product.value ? `compare_${product.value.category_slug}_${product.value.subcategory_slug}` : '')
 
 const compareCountLimit = 5
 const compareList = ref<any[]>([])
@@ -289,7 +290,7 @@ const allCompareSpecs = computed(() => {
 
 function openCompareModal() {
   if (compareList.value.length < 2) {
-    compareError.value = 'Izvēlieties vismaz divas preces, lai salīdzinātu.'
+    compareError.value = $t('product.compare.selectAtLeastTwo')
     return
   }
   compareError.value = ''
@@ -331,7 +332,7 @@ function formatPrice(cents: number, currency: string) {
 function formatDate(timestamp: number | string) {
   if (!timestamp) return '—'
   try {
-    return new Date(timestamp).toLocaleString('lv-LV')
+    return new Date(timestamp).toLocaleString(locale.value === 'ru' ? 'ru-RU' : locale.value === 'en' ? 'en-US' : 'lv-LV')
   } catch {
     return '—'
   }
@@ -344,7 +345,7 @@ async function refreshPrices() {
     await $fetch(`/api/prices/${productId.value}/refresh`, { method: 'POST' })
     await loadPrices()
   } catch (e: any) {
-    refreshError.value = String(e?.statusMessage || e?.message || 'Atjaunošana neizdevās')
+    refreshError.value = String(e?.statusMessage || e?.message || $t('product.refreshError'))
   } finally {
     refreshing.value = false
   }
@@ -372,14 +373,14 @@ async function toggleFavorite() {
     if (!isFavorite.value) {
       await $fetch(`/api/favorites/${productId.value}`, { method: 'POST', credentials: 'include' })
       isFavorite.value = true
-      favMsg.value = '(pievienots)'
+      favMsg.value = $t('product.favoriteMessages.added')
     } else {
       await $fetch(`/api/favorites/${productId.value}`, { method: 'DELETE', credentials: 'include' })
       isFavorite.value = false
-      favMsg.value = '(izņemts)'
+      favMsg.value = $t('product.favoriteMessages.removed')
     }
   } catch (e: any) {
-    favMsg.value = String(e?.statusMessage || e?.message || 'Nepieciešama autorizācija')
+    favMsg.value = String(e?.statusMessage || e?.message || $t('product.favoriteMessages.authRequired'))
   } finally {
     favBusy.value = false
   }
@@ -388,23 +389,8 @@ async function toggleFavorite() {
 await loadPrices()
 await loadFavoriteState()
 
-// Tehniskās specifikācijas parametru tulkojumi latviešu valodā
-const facetNameMap: Record<string, string> = {
-  battery_hours: 'Akumulatora darbības laiks (st.)',
-  battery_mah: 'Akumulatora ietilpība (mAh)',
-  battery_wh: 'Akumulatora ietilpība (Wh)',
-  screen_inch: 'Ekrāna diagonāle (collas)',
-  ram_gb: 'Operatīvā atmiņa (GB)',
-  storage_gb: 'Iebūvētā atmiņa (GB)',
-  weight_g: 'Svars (g)',
-  weight_kg: 'Svars (kg)',
-  power_w: 'Jauda (W)',
-  resolution: 'Ekrāna izšķirtspēja',
-  refresh_hz: 'Ekrāna atsvaidzes intensitāte (Hz)',
-}
-
 function facetName(key: string): string {
-  return facetNameMap[key] || key
+  return $t(`product.specsMap.${key}`) || key
 }
 </script>
 

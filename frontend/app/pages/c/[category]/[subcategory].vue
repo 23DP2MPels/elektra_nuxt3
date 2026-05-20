@@ -1,14 +1,14 @@
 <template>
   <main>
     <div class="breadcrumb">
-      <NuxtLink :to="localePath('/')">Главная</NuxtLink>
+      <NuxtLink :to="localePath('/')">Galvenā</NuxtLink>
       <span> / </span>
       <NuxtLink :to="localePath(`/c/${categorySlug}`)">{{ categoryName }}</NuxtLink>
       <span> / </span>
       <span>{{ subcategoryName }}</span>
     </div>
 
-    <div v-if="loading" class="loading">Loading products...</div>
+    <div v-if="loading" class="loading">Ielādē preces...</div>
     <div v-else-if="isNetworkError" class="network-error">
       <div class="error-icon">📶</div>
       <h2>{{ $t('networkError.title') }}</h2>
@@ -20,18 +20,18 @@
     <template v-else-if="categoryName && subcategoryName">
       <div class="page-header">
         <h1>{{ displayCategoryName }} / {{ displaySubcategoryName }}</h1>
-        <p class="product-count">Найдено товаров: {{ filteredProducts.length }} из {{ products.length }}</p>
+        <p class="product-count">Atrastas preces: {{ filteredProducts.length }} no {{ products.length }}</p>
       </div>
 
       <div class="content-grid">
         <aside class="filters-sidebar">
           <div class="filters-card">
-            <h2>Фильтры</h2>
+            <h2>Filtri</h2>
 
             <div class="filter-group">
               <label class="filter-label">
-                Поиск в товарах:
-                <input v-model="localQuery" type="search" placeholder="Введите название или характеристику..." class="search-input" />
+                Meklēt precēs:
+                <input v-model="localQuery" type="search" placeholder="Ievadiet nosaukumu vai parametru..." class="search-input" />
               </label>
             </div>
 
@@ -40,17 +40,17 @@
                 <template v-if="facet.kind === 'enum'">
                   <label class="facet-label">{{ facetName(facet.key) }}:</label>
                   <select v-model="enumFilters[facet.key]" class="facet-select">
-                    <option value="">Все</option>
+                    <option value="">Visi</option>
                     <option v-for="v in facet.values" :key="v" :value="v">{{ v }}</option>
                   </select>
                 </template>
 
-                <template v-else-if="facet.kind === 'boolean'">
+                <template v-if="facet.kind === 'boolean'">
                   <label class="facet-label">{{ facetName(facet.key) }}:</label>
                   <select v-model="booleanFilters[facet.key]" class="facet-select">
-                    <option value="">Все</option>
-                    <option value="true">Да</option>
-                    <option value="false">Нет</option>
+                    <option value="">Visi</option>
+                    <option value="true">Jā</option>
+                    <option value="false">Nē</option>
                   </select>
                 </template>
 
@@ -59,15 +59,15 @@
                     <strong class="facet-label">{{ facetName(facet.key) }}</strong>
                     <div class="number-inputs">
                       <div class="input-group">
-                        <label class="input-label">От:</label>
+                        <label class="input-label">No:</label>
                         <input v-model.number="numberMin[facet.key]" type="number" :placeholder="String(facet.min)" class="number-input" />
                       </div>
                       <div class="input-group">
-                        <label class="input-label">До:</label>
+                        <label class="input-label">Līdz:</label>
                         <input v-model.number="numberMax[facet.key]" type="number" :placeholder="String(facet.max)" class="number-input" />
                       </div>
                     </div>
-                    <div class="range-info">Диапазон: {{ facet.min }} – {{ facet.max }}</div>
+                    <div class="range-info">Diapazons: {{ facet.min }} – {{ facet.max }}</div>
                   </div>
                 </template>
               </div>
@@ -85,8 +85,8 @@
                   </div>
                   <h3 class="product-name">{{ p.name }}</h3>
                   <div class="product-price-range">
-                    <strong>Цена</strong>
-                    <span>от {{ formatPrice(p.price_min) }} до {{ formatPrice(p.price_max) }}</span>
+                    <strong>Cena</strong>
+                    <span>no {{ formatPrice(p.price_min) }} līdz {{ formatPrice(p.price_max) }}</span>
                   </div>
                   <div class="product-specs">
                     <div v-for="[key, value] in Object.entries(p.specs ?? {}).slice(0, 3)" :key="key" class="spec-item">
@@ -96,15 +96,15 @@
                   </div>
                 </NuxtLink>
                 <button @click="toggleCompare(p.id)" class="compare-btn" :class="{ active: isInCompare(p.id) }">
-                  {{ isInCompare(p.id) ? 'Убрать из сравнения' : 'Сравнить' }}
+                  {{ isInCompare(p.id) ? 'Izņemt no salīdzināšanas' : 'Salīdzināt' }}
                 </button>
               </div>
             </div>
           </template>
           <template v-else>
             <div class="no-products">
-              <p v-if="products.length">Нет товаров, соответствующих фильтрам.</p>
-              <p v-else>В этой подкатегории пока нет товаров.</p>
+              <p v-if="products.length">Nav preču, kas atbilstu izvēlētajiem filtriem.</p>
+              <p v-else">Šajā apakškategorijā pašlaik nav preču.</p>
             </div>
           </template>
         </section>
@@ -113,10 +113,10 @@
 
     <template v-else>
       <div class="error-card">
-        <h1>Подкатегория не найдена</h1>
-        <p>Категория: {{ categorySlug }}</p>
-        <p>Подкатегория: {{ subcategorySlug }}</p>
-        <NuxtLink :to="localePath('/')" class="back-link">Вернуться на главную</NuxtLink>
+        <h1>Apakškategorija nav atrasta</h1>
+        <p>Kategorija: {{ categorySlug }}</p>
+        <p>Apakškategorija: {{ subcategorySlug }}</p>
+        <NuxtLink :to="localePath('/')" class="back-link">Atgriezties uz sākumlapu</NuxtLink>
       </div>
     </template>
 
@@ -125,13 +125,13 @@
         <div v-for="item in compareList" :key="item.id" class="compare-item">
           <img :src="item.image_url || getProductImage(item)" :alt="item.image_alt || item.name" />
         </div>
-        <span class="compare-summary">Выбрано {{ compareList.length }} из {{ compareCountLimit }}</span>
+        <span class="compare-summary">Izvēlētas {{ compareList.length }} no {{ compareCountLimit }} precēm</span>
       </div>
       <div class="compare-actions">
         <button class="compare-open-btn" @click="openCompareModal" :disabled="compareList.length < 2">
-          Сравнить выбранное
+          Salīdzināt izvēlēto
         </button>
-        <button class="compare-clear-btn" @click="clearCompare">Очистить</button>
+        <button class="compare-clear-btn" @click="clearCompare">Notīrīt</button>
       </div>
       <p v-if="compareError" class="compare-error">{{ compareError }}</p>
     </div>
@@ -139,7 +139,7 @@
     <div v-if="compareModalOpen" class="compare-modal-backdrop" @click.self="closeCompareModal">
       <div class="compare-modal">
         <div class="compare-modal-header">
-          <h2>Сравнение товаров</h2>
+          <h2>Preču salīdzināšana</h2>
           <button class="close-modal" @click="closeCompareModal">×</button>
         </div>
         <div class="compare-modal-thumbs">
@@ -152,11 +152,17 @@
           <table class="compare-table">
             <thead>
               <tr>
-                <th>Характеристика</th>
+                <th>Parametrs</th>
                 <th v-for="item in compareList" :key="item.id">{{ item.name }}</th>
               </tr>
             </thead>
             <tbody>
+              <tr class="price-compare-row">
+                <td class="spec-key">Cenas diapazons</td>
+                <td v-for="item in compareList" :key="item.id" class="spec-value price-range-cell">
+                  no {{ formatPrice(item.price_min) }} līdz {{ formatPrice(item.price_max) }}
+                </td>
+              </tr>
               <tr v-for="spec of allCompareSpecs" :key="spec">
                 <td class="spec-key">{{ facetName(spec) }}</td>
                 <td v-for="item in compareList" :key="item.id" class="spec-value">
@@ -184,7 +190,7 @@ const route = useRoute()
 const categorySlug = computed(() => String(route.params.category || ''))
 const subcategorySlug = computed(() => String(route.params.subcategory || ''))
 
-const products = ref<Array<{ id: string; name: string; category_slug: string; category_name: unknown; subcategory_slug: string; subcategory_name: unknown; specs_json: string; specs: Record<string, any> }>>([])
+const products = ref<Array<{ id: string; name: string; category_slug: string; category_name: unknown; subcategory_slug: string; subcategory_name: unknown; specs_json: string; specs: Record<string, any>; price_min?: number; price_max?: number }>>([])
 const categoryName = ref('')
 const subcategoryName = ref('')
 const loading = ref(true)
@@ -206,8 +212,7 @@ watchEffect(() => {
     isNetworkError.value = false
   }
   if (fetchError.value) {
-    // Check if it's a network error
-    const errorMessage = String(fetchError.value.message || fetchError.value.statusMessage || 'Failed to load products')
+    const errorMessage = String(fetchError.value.message || fetchError.value.statusMessage || 'Neizdevās ielādēt preces')
     if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('Failed to fetch') || !navigator.onLine) {
       isNetworkError.value = true
       error.value = ''
@@ -225,8 +230,8 @@ function retryLoad() {
   refresh()
 }
 
-const displayCategoryName = computed(() => categoryName.value || 'Loading...')
-const displaySubcategoryName = computed(() => subcategoryName.value || 'Loading...')
+const displayCategoryName = computed(() => categoryName.value || 'Ielādē...')
+const displaySubcategoryName = computed(() => subcategoryName.value || 'Ielādē...')
 
 const localQuery = ref('')
 const enumFilters = reactive<Record<string, string>>({})
@@ -363,7 +368,7 @@ function onImageError(event: Event) {
 
 function formatPrice(cents: number | null | undefined, currency = 'EUR') {
   if (cents == null || cents <= 0) return '—'
-  return new Intl.NumberFormat('ru-RU', {
+  return new Intl.NumberFormat('lv-LV', {
     style: 'currency',
     currency,
     maximumFractionDigits: 2
@@ -404,7 +409,7 @@ function toggleCompare(productId: string) {
     compareError.value = ''
   } else {
     if (compareList.value.length >= compareCountLimit) {
-      compareError.value = `Максимум ${compareCountLimit} товаров можно выбрать для сравнения.`
+      compareError.value = `Maksimāli var izvēlēties līdz ${compareCountLimit} precēm salīdzināšanai.`
       return
     }
     const product = parsedProducts.value.find(p => p.id === productId)
@@ -426,7 +431,7 @@ const compareError = ref('')
 
 function openCompareModal() {
   if (compareList.value.length < 2) {
-    compareError.value = 'Выберите минимум два товара для сравнения.'
+    compareError.value = 'Izvēlieties vismaz divas preces, lai salīdzinātu.'
     return
   }
   compareError.value = ''
@@ -448,18 +453,19 @@ onMounted(() => {
 })
 
 const facetNameMap: Record<string, string> = {
-  battery_hours: 'Время работы батареи (ч)',
-  battery_mah: 'Батарея (мАч)',
-  battery_wh: 'Батарея (Втч)',
-  screen_inch: 'Диагональ экрана (дюйм)',
-  ram_gb: 'Оперативная память (ГБ)',
-  storage_gb: 'Хранение (ГБ)',
-  weight_g: 'Вес (г)',
-  weight_kg: 'Вес (кг)',
-  power_w: 'Мощность (Вт)',
-  resolution: 'Разрешение',
-  refresh_hz: 'Частота обновления (Гц)',
-  // Добавьте другие по необходимости
+  battery_hours: 'Akumulatora darbības laiks (st.)',
+  battery_mah: 'Akumulatora ietilpība (mAh)',
+  battery_wh: 'Akumulatora ietilpība (Wh)',
+  screen_inch: 'Ekrāna diagonāle (collas)',
+  ram_gb: 'Operatīvā atmiņa (GB)',
+  storage_gb: 'Iebūvētā atmiņa (GB)',
+  weight_g: 'Svars (g)',
+  weight_kg: 'Svars (kg)',
+  power_w: 'Jauda (W)',
+  resolution: 'Ekrāna izšķirtspēja',
+  refresh_hz: 'Ekrāna atsvaidzes intensitāte (Hz)',
+  age: 'Vecums',
+  height_cm: 'Augstums (cm)',
 }
 
 function facetName(key: string): string {
@@ -509,8 +515,10 @@ function facetName(key: string): string {
   position: sticky;
   top: 2rem;
   align-self: start;
+  /* Atsevišķs ritināšanas apgabals filtriem neatkarīgi no lapas */
   max-height: calc(100vh - 4rem);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .filters-card {
@@ -518,8 +526,7 @@ function facetName(key: string): string {
   border-radius: 1rem;
   border: 1px solid #e2e8f0;
   padding: 1.5rem;
-  max-height: 100%;
-  overflow-y: auto;
+  overflow-y: auto; /* Aktivizē iekšējo ritjoslu filtriem */
 }
 
 .filters-card h2 {
@@ -813,6 +820,15 @@ function facetName(key: string): string {
   color: #475569;
 }
 
+.price-compare-row {
+  background: #f0fdf4;
+}
+
+.price-range-cell {
+  font-weight: bold;
+  color: #16a34a !important;
+}
+
 .compare-btn {
   position: absolute;
   top: 0.5rem;
@@ -1007,6 +1023,11 @@ function facetName(key: string): string {
 
   .filters-sidebar {
     position: static;
+    max-height: none;
+  }
+
+  .filters-card {
+    overflow-y: visible;
   }
 
   .products-grid {
@@ -1014,4 +1035,3 @@ function facetName(key: string): string {
   }
 }
 </style>
-

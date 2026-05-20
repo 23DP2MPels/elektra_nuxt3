@@ -6,11 +6,25 @@ let client: MongoClient | null = null
 async function getMongoDb() {
   if (!client) {
     const config = useRuntimeConfig()
+    // 1. Get the connection string URI
     const uri = config.mongodbUri || process.env.MONGODB_URI
+
+    if (!uri) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Database configuration missing: MONGODB_URI is not set.'
+      })
+    }
+
     client = new MongoClient(uri)
     await client.connect()
   }
-  return client.db()
+
+  // 2. Read your MONGODB_DB environment variable directly, falling back safely to 'elektra_db'
+  const dbName = process.env.MONGODB_DB || 'elektra_db'
+  
+  // 3. Force the client to use that exact database name instead of defaulting to 'test'
+  return client.db(dbName)
 }
 
 export default defineEventHandler(async (event) => {

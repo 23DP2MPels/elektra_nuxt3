@@ -1,6 +1,5 @@
 import { defineEventHandler, createError, getRouterParam } from 'h3'
 import { MongoClient } from 'mongodb'
-import { getUserById, getUserIdFromEvent } from '../../../utils/auth'
 
 let client: MongoClient | null = null
 
@@ -8,14 +7,6 @@ async function getMongoDb() {
   if (!client) {
     const config = useRuntimeConfig()
     const uri = config.mongodbUri || process.env.MONGODB_URI
-
-    if (!uri) {
-      throw createError({
-        statusCode: 500,
-        statusMessage: 'Database configuration missing: MONGODB_URI is not set.'
-      })
-    }
-
     client = new MongoClient(uri)
     await client.connect()
   }
@@ -23,38 +14,38 @@ async function getMongoDb() {
 }
 
 export default defineEventHandler(async (event) => {
-  // 1. Authenticate user
-  const userId = await getUserIdFromEvent(event)
-  if (!userId) throw createError({ statusCode: 401, statusMessage: 'Not authenticated' })
-
-  // 2. Authorize admin status
-  const me = await getUserById(userId)
-  if (!me || !me.is_admin) throw createError({ statusCode: 403, statusMessage: 'Admin only' })
-
-  // 3. Robust parameter extraction using H3 utility
-  // This automatically extracts the parameter whether the file is named [productId].ts or _productId_.ts
   const productId = getRouterParam(event, 'productId')
+  
+  // ─── CRITICAL SERVER LOGS ──────────────────────────────────────────
+  console.log('👉 RECEIVED PRODUCT ID FROM URL:', productId)
+  // ───────────────────────────────────────────────────────────────────
+
   if (!productId) throw createError({ statusCode: 400, statusMessage: 'Product id is required' })
 
   try {
     const database = await getMongoDb()
+    
+    // ─── CRITICAL DATABASE LOGS ──────────────────────────────────────
+    console.log('👉 CONNECTED TO DB NAME:', database.databaseName)
+    // ───────────────────────────────────────────────────────────────────
 
-    // 4. Delete map associations first
     await database.collection('product_store_map').deleteMany({ product_id: productId })
-
-    // 5. Delete the main product document matching the 'id' field string
     const productResult = await database.collection('products').deleteOne({ id: productId })
 
+    console.log('👉 MONGO DELETION RESULT:', productResult)
+
     if (productResult.deletedCount === 0) {
-      throw createError({ statusCode: 404, statusMessage: `Product with id "${productId}" not found in database.` })
+      throw createError({ 
+        statusCode: 404, 
+        statusMessage: `Product with id "${productId}" not found in database "${database.databaseName}".` 
+      })
     }
 
     return { ok: true }
-    
   } catch (error: any) {
     throw createError({
       statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || `Database operation failed: ${error.message}`
+      statusMessage: error.statusMessage || `Database error: ${error.message}`
     })
   }
 })

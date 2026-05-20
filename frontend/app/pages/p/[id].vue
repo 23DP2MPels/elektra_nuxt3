@@ -1,7 +1,7 @@
 <template>
   <main>
     <div class="breadcrumb">
-      <NuxtLink :to="localePath('/')">Главная</NuxtLink>
+      <NuxtLink :to="localePath('/')">Galvenā</NuxtLink>
       <template v-if="product">
         <span> / </span>
         <NuxtLink :to="localePath(`/c/${product.category_slug}`)">
@@ -15,8 +15,8 @@
     </div>
 
     <div class="nav-links">
-      <NuxtLink :to="product ? localePath(`/c/${product.category_slug}/${product.subcategory_slug}`) : localePath('/')" class="nav-link secondary">← К товарам</NuxtLink>
-      <NuxtLink :to="localePath('/account')" class="nav-link">Личный кабинет</NuxtLink>
+      <NuxtLink :to="product ? localePath(`/c/${product.category_slug}/${product.subcategory_slug}`) : localePath('/')" class="nav-link secondary">← Atpakaļ pie precēm</NuxtLink>
+      <NuxtLink :to="localePath('/account')" class="nav-link">Mans profils</NuxtLink>
     </div>
 
     <div v-if="isNetworkError" class="network-error">
@@ -30,19 +30,19 @@
       <div class="product-layout">
         <div class="product-main">
           <div class="product-image-card">
-        <img :src="imageUrl" :alt="product.image_alt || product.name" class="product-image" @error="onImageError" />
-      </div>
-      <div class="product-header">
-        <h1>{{ product.name }}</h1>
-        <div class="product-meta">
-          <span class="category-badge">{{ categoryName }}</span>
-          <span class="subcategory-badge">{{ subcategoryName }}</span>
-        </div>
-      </div>
+            <img :src="imageUrl" :alt="product.image_alt || product.name" class="product-image" @error="onImageError" />
+          </div>
+          <div class="product-header">
+            <h1>{{ product.name }}</h1>
+            <div class="product-meta">
+              <span class="category-badge">{{ categoryName }}</span>
+              <span class="subcategory-badge">{{ subcategoryName }}</span>
+            </div>
+          </div>
 
           <div class="product-content">
             <section class="specs-section">
-              <h2>Технические характеристики</h2>
+              <h2>Tehniskā specifikācija</h2>
               <div class="specs-grid">
                 <div v-for="[key, value] in specEntries" :key="key" class="spec-row">
                   <span class="spec-key">{{ key }}</span>
@@ -52,13 +52,13 @@
             </section>
 
             <section class="favorites-section">
-              <h2>Избранное</h2>
+              <h2>Izlase</h2>
               <div class="favorites-controls">
                 <button @click="toggleFavorite" :disabled="favBusy" class="favorite-btn" :class="{ active: isFavorite }">
-                  <span v-if="favBusy">Загрузка...</span>
-                  <span v-else>{{ isFavorite ? 'Убрать из избранного' : 'Добавить в избранное' }}</span>
+                  <span v-if="favBusy">Ielādē...</span>
+                  <span v-else>{{ isFavorite ? 'Izņemt no izlases' : 'Pievienot izlasei' }}</span>
                 </button>
-                <span v-if="favMsg" class="fav-message" :class="{ success: favMsg.includes('добавлено'), error: favMsg.includes('ошибка') || favMsg.includes('Login') }">
+                <span v-if="favMsg" class="fav-message" :class="{ success: favMsg.includes('added') || favMsg.includes('pievienots'), error: favMsg.includes('kļūda') || favMsg.includes('Login') || favMsg.includes('error') }">
                   {{ favMsg }}
                 </span>
               </div>
@@ -69,35 +69,46 @@
 
         <aside class="product-sidebar">
           <div class="prices-card">
-            <h3>Цены</h3>
+            <h3>Cenas</h3>
             <div class="price-controls">
               <button style="display: none" @click="refreshPrices" :disabled="pricesLoading || refreshing" class="refresh-btn">
-                {{ refreshing ? 'Обновление...' : 'Обновить цены' }}
+                {{ refreshing ? 'Atjaunina...' : 'Atjaunot cenas' }}
               </button>
               <span v-if="refreshError" class="error">{{ refreshError }}</span>
             </div>
 
-            <div v-if="pricesLoading" class="loading">Загрузка цен...</div>
+            <div v-if="pricesLoading" class="loading">Ielādē cenas...</div>
             <div v-else class="prices-list">
-              <div v-for="p in prices" :key="p.storeId" class="price-item" :class="{ ok: p.ok, error: !p.ok }">
+              <a 
+                v-for="p in prices" 
+                :key="p.storeId" 
+                :href="p.shopUrl || `https://${p.storeName}.com`" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="price-item clickable-store-card" 
+                :class="{ ok: p.ok, error: !p.ok }"
+                title="Atvērt veikalu jaunā cilnē"
+              >
                 <div class="price-header">
-                  <img :src="storeLogos[p.storeId] || defaultStoreLogo" :alt="p.storeName" class="store-logo" />
-                  <strong>{{ p.storeName }}</strong>
-                  <span class="external-id">(ID: {{ p.externalId }})</span>
+                  <div class="store-info-group">
+                    <img :src="storeLogos[p.storeId] || defaultStoreLogo" :alt="p.storeName" class="store-logo" />
+                    <strong>{{ p.storeName }}</strong>
+                  </div>
+                  <span class="external-id-badge">🛒 Uz veikalu →</span>
                 </div>
                 <div class="price-value">
                   {{ formatPrice(p.priceCents, p.currency) }}
                 </div>
                 <div class="price-meta">
                   <span v-if="p.oldPriceCents !== null" class="old-price">
-                    Прошлая цена: {{ formatPrice(p.oldPriceCents, p.currency) }}
+                    Iepriekšējā cena: {{ formatPrice(p.oldPriceCents, p.currency) }}
                   </span>
-                  <span v-if="p.error" class="price-error">Ошибка: {{ p.error }}</span>
+                  <span v-if="p.error" class="price-error">Kļūda: {{ p.error }}</span>
                   <span v-if="p.fetchedAt" class="price-date">
-                    Обновлено: {{ formatDate(p.fetchedAt) }}
+                    Atjaunots: {{ formatDate(p.fetchedAt) }}
                   </span>
                 </div>
-              </div>
+              </a>
             </div>
           </div>
         </aside>
@@ -106,9 +117,9 @@
 
     <template v-else>
       <div class="error-card">
-        <h1>Товар не найден</h1>
-        <p>Неизвестный ID товара: {{ productId }}</p>
-        <NuxtLink :to="localePath('/')" class="back-link">Вернуться на главную</NuxtLink>
+        <h1>Prece nav atrasta</h1>
+        <p>Nezināms preces ID: {{ productId }}</p>
+        <NuxtLink :to="localePath('/')" class="back-link">Atgriezties uz sākumlapu</NuxtLink>
       </div>
     </template>
 
@@ -117,13 +128,13 @@
         <div v-for="item in compareList" :key="item.id" class="compare-item">
           <img :src="item.image_url || getDefaultImage(item.subcategory_slug || '')" :alt="item.image_alt || item.name" />
         </div>
-        <span class="compare-summary">Выбрано {{ compareList.length }} из {{ compareCountLimit }}</span>
+        <span class="compare-summary">Izvēlētas {{ compareList.length }} no {{ compareCountLimit }} precēm</span>
       </div>
       <div class="compare-actions">
         <button class="compare-open-btn" @click="openCompareModal" :disabled="compareList.length < 2">
-          Сравнить выбранное
+          Salīdzināt izvēlēto
         </button>
-        <button class="compare-clear-btn" @click="clearCompare">Очистить</button>
+        <button class="compare-clear-btn" @click="clearCompare">Notīrīt</button>
       </div>
       <p v-if="compareError" class="compare-error">{{ compareError }}</p>
     </div>
@@ -131,7 +142,7 @@
     <div v-if="compareModalOpen" class="compare-modal-backdrop" @click.self="closeCompareModal">
       <div class="compare-modal">
         <div class="compare-modal-header">
-          <h2>Сравнение товаров</h2>
+          <h2>Preču salīdzināšana</h2>
           <button class="close-modal" @click="closeCompareModal">×</button>
         </div>
         <div class="compare-modal-thumbs">
@@ -144,7 +155,7 @@
           <table class="compare-table">
             <thead>
               <tr>
-                <th>Характеристика</th>
+                <th>Parametrs</th>
                 <th v-for="item in compareList" :key="item.id">{{ item.name }}</th>
               </tr>
             </thead>
@@ -199,9 +210,10 @@ type PriceItem = {
   fetchedAt: number
   ok: boolean
   error: string | null
+  shopUrl?: string
 }
 
-// Network error handling
+// Tīkla kļūdu apstrāde
 const isNetworkError = ref(false)
 
 async function retryLoad() {
@@ -215,7 +227,7 @@ async function retryLoad() {
   }
 }
 
-// Prices state
+// Cenu stāvoklis
 const pricesLoading = ref(false)
 const refreshing = ref(false)
 const refreshError = ref('')
@@ -223,7 +235,7 @@ const prices = ref<PriceItem[]>([])
 
 const defaultProductImage = '/img/product_img_placeholder/gamepad.png'
 const defaultStoreLogo = '/img/store_logos/store-default.png'
-const storeLogos = {
+const storeLogos: Record<string, string> = {
   'store-a': '/img/store_logos/store-a.png',
   'store-b': '/img/store_logos/store-b.png',
   'store-c': '/img/store_logos/store-c.png',
@@ -234,7 +246,6 @@ const getDefaultImage = (subcategorySlug: string) => {
     'gamepads': '/img/product_img_placeholder/gamepad.png',
     'phones': '/img/product_img_placeholder/phone.png',
     'laptops': '/img/product_img_placeholder/laptop.png',
-    // add more as needed
   }
   return placeholders[subcategorySlug] || '/img/product_img_placeholder/default.png'
 }
@@ -278,7 +289,7 @@ const allCompareSpecs = computed(() => {
 
 function openCompareModal() {
   if (compareList.value.length < 2) {
-    compareError.value = 'Выберите минимум два товара для сравнения.'
+    compareError.value = 'Izvēlieties vismaz divas preces, lai salīdzinātu.'
     return
   }
   compareError.value = ''
@@ -320,7 +331,7 @@ function formatPrice(cents: number, currency: string) {
 function formatDate(timestamp: number | string) {
   if (!timestamp) return '—'
   try {
-    return new Date(timestamp).toLocaleString('ru-RU')
+    return new Date(timestamp).toLocaleString('lv-LV')
   } catch {
     return '—'
   }
@@ -330,17 +341,16 @@ async function refreshPrices() {
   refreshError.value = ''
   refreshing.value = true
   try {
-    // IMPORTANT: do not navigate to /refresh in router. We call API.
     await $fetch(`/api/prices/${productId.value}/refresh`, { method: 'POST' })
     await loadPrices()
   } catch (e: any) {
-    refreshError.value = String(e?.statusMessage || e?.message || 'Refresh failed')
+    refreshError.value = String(e?.statusMessage || e?.message || 'Atjaunošana neizdevās')
   } finally {
     refreshing.value = false
   }
 }
 
-// favorites (requires login)
+// Izlase (nepieciešama autorizācija)
 const favBusy = ref(false)
 const favMsg = ref('')
 const isFavorite = ref(false)
@@ -362,14 +372,14 @@ async function toggleFavorite() {
     if (!isFavorite.value) {
       await $fetch(`/api/favorites/${productId.value}`, { method: 'POST', credentials: 'include' })
       isFavorite.value = true
-      favMsg.value = '(added)'
+      favMsg.value = '(pievienots)'
     } else {
       await $fetch(`/api/favorites/${productId.value}`, { method: 'DELETE', credentials: 'include' })
       isFavorite.value = false
-      favMsg.value = '(removed)'
+      favMsg.value = '(izņemts)'
     }
   } catch (e: any) {
-    favMsg.value = String(e?.statusMessage || e?.message || 'Login required')
+    favMsg.value = String(e?.statusMessage || e?.message || 'Nepieciešama autorizācija')
   } finally {
     favBusy.value = false
   }
@@ -378,19 +388,19 @@ async function toggleFavorite() {
 await loadPrices()
 await loadFavoriteState()
 
+// Tehniskās specifikācijas parametru tulkojumi latviešu valodā
 const facetNameMap: Record<string, string> = {
-  battery_hours: 'Время работы батареи (ч)',
-  battery_mah: 'Батарея (мАч)',
-  battery_wh: 'Батарея (Втч)',
-  screen_inch: 'Диагональ экрана (дюйм)',
-  ram_gb: 'Оперативная память (ГБ)',
-  storage_gb: 'Хранение (ГБ)',
-  weight_g: 'Вес (г)',
-  weight_kg: 'Вес (кг)',
-  power_w: 'Мощность (Вт)',
-  resolution: 'Разрешение',
-  refresh_hz: 'Частота обновления (Гц)',
-  // Добавьте другие по необходимости
+  battery_hours: 'Akumulatora darbības laiks (st.)',
+  battery_mah: 'Akumulatora ietilpība (mAh)',
+  battery_wh: 'Akumulatora ietilpība (Wh)',
+  screen_inch: 'Ekrāna diagonāle (collas)',
+  ram_gb: 'Operatīvā atmiņa (GB)',
+  storage_gb: 'Iebūvētā atmiņa (GB)',
+  weight_g: 'Svars (g)',
+  weight_kg: 'Svars (kg)',
+  power_w: 'Jauda (W)',
+  resolution: 'Ekrāna izšķirtspēja',
+  refresh_hz: 'Ekrāna atsvaidzes intensitāte (Hz)',
 }
 
 function facetName(key: string): string {
@@ -791,6 +801,41 @@ function facetName(key: string): string {
   gap: 1rem;
 }
 
+/* ─── MAZAFORMATĒTAIS VEIKALU SAIŠU STILS ─── */
+.clickable-store-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.clickable-store-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(33, 77, 124, 0.08);
+}
+
+.store-info-group {
+  display: flex;
+  align-items: center;
+}
+
+.external-id-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2f5f9b;
+  background: #f0f6ff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.clickable-store-card:hover .external-id-badge {
+  background: #2f5f9b;
+  color: #fff;
+}
+/* ────────────────────────────── */
+
 .price-item {
   padding: 1rem;
   border-radius: 0.5rem;
@@ -831,9 +876,14 @@ function facetName(key: string): string {
   margin-bottom: 0.5rem;
 }
 
-.price-meta {
-  font-size: 0.85rem;
-  color: #6b7280;
+.price-sidebar {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.old-price {
+  color: #7c3aed;
+  font-weight: 600;
 }
 
 .price-error {
@@ -889,36 +939,8 @@ function facetName(key: string): string {
   object-fit: contain;
 }
 
-.price-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.price-header strong {
-  color: #1f2a43;
-}
-
 .store-logo {
   margin-right: 0.75rem;
-}
-
-.price-header strong,
-.price-header .external-id {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.price-meta {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.old-price {
-  color: #7c3aed;
-  font-weight: 600;
 }
 
 .error-card {
@@ -1004,4 +1026,3 @@ function facetName(key: string): string {
   }
 }
 </style>
-

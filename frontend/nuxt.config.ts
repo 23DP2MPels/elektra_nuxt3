@@ -44,6 +44,21 @@ export default defineNuxtConfig({
     }
   },
 
+  pwa: {
+    strategies: 'generateSW',
+    injectRegister: 'auto',
+    workbox: {
+      navigateFallback: '/',
+      // This forces workbox to allow the root fallback cleanly
+      runtimeCaching: [
+        {
+          urlPattern: ({ url }) => url.pathname === '/',
+          handler: 'NetworkFirst',
+        }
+      ]
+    }
+  },
+
   // Настройки i18n
   i18n: {
     langDir: 'locales',

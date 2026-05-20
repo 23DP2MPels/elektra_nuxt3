@@ -44,6 +44,7 @@ export default defineEventHandler(async (event) => {
     // ───────────────────────────────────────────────────────────────────
 
     await database.collection('product_store_map').deleteMany({ product_id: productId })
+    await database.collection('favorited_items').deleteMany({ product_id: productId })
     const productResult = await database.collection('products').deleteOne({ id: productId })
 
     console.log('👉 MONGO DELETION RESULT:', productResult)
@@ -59,7 +60,7 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     throw createError({
       statusCode: error.statusCode || 500,
-      statusMessage: error.statusMessage || `Database error: ${error.message}`
+    statusMessage: error.statusMessage || error.message || 'Internal server error'
     })
   }
 })

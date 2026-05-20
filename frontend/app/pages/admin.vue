@@ -109,7 +109,7 @@
               </div>
               <div class="form-field">
                 <label>Category name (EN)</label>
-                <input v-model="form.category_name_en" />
+                <input v-model="form.category_name_en" required />
               </div>
               <div class="form-field">
                 <label>Category name (RU)</label>
@@ -127,7 +127,7 @@
               </div>
               <div class="form-field">
                 <label>Subcategory name (EN)</label>
-                <input v-model="form.subcategory_name_en" />
+                <input v-model="form.subcategory_name_en" required />
               </div>
               <div class="form-field">
                 <label>Subcategory name (RU)</label>
@@ -140,8 +140,15 @@
             </div>
           </template>
           <div class="form-field">
-            <label>Specs (JSON)</label>
-            <textarea v-model="form.specs_json" rows="8" required />
+            <label>Specs</label>
+            <div class="specs-container">
+              <div v-for="(spec, index) in specsList" :key="index" class="spec-row">
+                <input v-model="spec.key" placeholder="Key" class="spec-key-input" />
+                <input v-model="spec.value" placeholder="Value" class="spec-value-input" />
+                <button type="button" @click="removeSpec(index)" class="spec-remove-btn">×</button>
+              </div>
+              <button type="button" @click="addSpec" class="spec-add-btn">+ Add spec</button>
+            </div>
           </div>
           <p>
             <button type="submit" :disabled="saving">Save product</button>
@@ -219,6 +226,7 @@ const useExistingCategory = ref(true)
 const selectedCategorySlug = ref('')
 const initializingPrices = ref(false)
 const initializePricesMessage = ref('')
+const specsList = ref<Array<{ key: string; value: string }>>([])
 const form = reactive({
   id: '',
   name: '',
@@ -363,6 +371,14 @@ function selectProduct(product: any) {
   form.specs_json = product.specs_json || '{}'
   selectedCategorySlug.value = product.category_slug
   useExistingCategory.value = true
+  
+  // Parse specs_json and populate specsList
+  try {
+    const specs = JSON.parse(product.specs_json || '{}')
+    specsList.value = Object.entries(specs).map(([key, value]) => ({ key, value: String(value) }))
+  } catch {
+    specsList.value = []
+  }
 }
 
 function resetForm() {
@@ -382,9 +398,18 @@ function resetForm() {
   form.image_url = ''
   form.image_alt = ''
   form.specs_json = '{}'
+  specsList.value = []
   selectedCategorySlug.value = ''
   useExistingCategory.value = categoryOptions.value.length > 0
   message.value = ''
+}
+
+function addSpec() {
+  specsList.value.push({ key: '', value: '' })
+}
+
+function removeSpec(index: number) {
+  specsList.value.splice(index, 1)
 }
 
 function buildLocalizedLabelObject(value: string, en: string, ru: string, lv: string) {
@@ -411,6 +436,16 @@ async function saveProduct() {
     form.subcategory_name_ru,
     form.subcategory_name_lv,
   )
+  
+  // Build specs object from specsList
+  const specsObj: Record<string, string> = {}
+  specsList.value.forEach(spec => {
+    if (spec.key.trim()) {
+      specsObj[spec.key.trim()] = spec.value
+    }
+  })
+  const specsJson = JSON.stringify(specsObj)
+  
   try {
     await $fetch('/api/admin/products', {
       method: 'POST',
@@ -423,7 +458,7 @@ async function saveProduct() {
         subcategory_name: subcategoryNameValue,
         image_url: form.image_url,
         image_alt: form.image_alt,
-        specs_json: form.specs_json,
+        specs_json: specsJson,
       },
       credentials: 'include',
     })
@@ -601,6 +636,66 @@ button {
   .form-field textarea {
     width: 100%;
     font-family: inherit;
+  }
+
+  .specs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .spec-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .spec-key-input,
+  .spec-value-input {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.5rem;
+    border: 1px solid #d5dde8;
+    background: #f8faff;
+    font-size: 0.95rem;
+  }
+
+  .spec-key-input {
+    max-width: 200px;
+  }
+
+  .spec-remove-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 0.5rem;
+    border: none;
+    background: #ef4444;
+    color: white;
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .spec-remove-btn:hover {
+    background: #dc2626;
+  }
+
+  .spec-add-btn {
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #3b82f6;
+    background: #3b82f6;
+    color: white;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .spec-add-btn:hover {
+    background: #2563eb;
   }
 
   .products-container {

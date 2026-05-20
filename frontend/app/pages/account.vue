@@ -27,11 +27,6 @@
       <section class="account-section">
         <div class="account-card">
           <div class="account-header">
-            <div class="user-avatar">
-              <svg fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-              </svg>
-            </div>
             <div class="user-info">
               <h2>{{ me.user.email }}</h2>
               <p v-if="me.user.is_admin" class="admin-badge">{{ $t('account.admin') }}</p>

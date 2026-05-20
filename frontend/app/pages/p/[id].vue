@@ -71,7 +71,7 @@
           <div class="prices-card">
             <h3>Цены</h3>
             <div class="price-controls">
-              <button @click="refreshPrices" :disabled="pricesLoading || refreshing" class="refresh-btn">
+              <button style="display: none" @click="refreshPrices" :disabled="pricesLoading || refreshing" class="refresh-btn">
                 {{ refreshing ? 'Обновление...' : 'Обновить цены' }}
               </button>
               <span v-if="refreshError" class="error">{{ refreshError }}</span>

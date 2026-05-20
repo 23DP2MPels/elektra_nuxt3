@@ -1,8 +1,7 @@
-import { defineEventHandler, createError } from 'h3'
+import { defineEventHandler, createError, getRouterParam } from 'h3'
 import { MongoClient } from 'mongodb'
 import { getUserById, getUserIdFromEvent } from '../../../utils/auth'
 
-// Cache the database client connection across requests so it stays fast
 let client: MongoClient | null = null
 
 async function getMongoDb() {
@@ -20,7 +19,6 @@ async function getMongoDb() {
     client = new MongoClient(uri)
     await client.connect()
   }
-  // This automatically uses the default database specified in your connection URI string
   return client.db()
 }
 
@@ -33,27 +31,27 @@ export default defineEventHandler(async (event) => {
   const me = await getUserById(userId)
   if (!me || !me.is_admin) throw createError({ statusCode: 403, statusMessage: 'Admin only' })
 
-  // 3. Validate incoming parameters
-  const { productId } = event.context.params as { productId: string }
+  // 3. Robust parameter extraction using H3 utility
+  // This automatically extracts the parameter whether the file is named [productId].ts or _productId_.ts
+  const productId = getRouterParam(event, 'productId')
   if (!productId) throw createError({ statusCode: 400, statusMessage: 'Product id is required' })
 
   try {
     const database = await getMongoDb()
 
-    // 4. Delete map associations from the store map collection
+    // 4. Delete map associations first
     await database.collection('product_store_map').deleteMany({ product_id: productId })
 
-    // 5. Delete the main product document
+    // 5. Delete the main product document matching the 'id' field string
     const productResult = await database.collection('products').deleteOne({ id: productId })
 
     if (productResult.deletedCount === 0) {
-      throw createError({ statusCode: 404, statusMessage: 'Product not found' })
+      throw createError({ statusCode: 404, statusMessage: `Product with id "${productId}" not found in database.` })
     }
 
     return { ok: true }
     
   } catch (error: any) {
-    // Prevent 500 crashes by capturing unexpected engine issues cleanly
     throw createError({
       statusCode: error.statusCode || 500,
       statusMessage: error.statusMessage || `Database operation failed: ${error.message}`

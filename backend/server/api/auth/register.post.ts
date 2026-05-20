@@ -14,6 +14,12 @@ export default defineEventHandler(async (event) => {
   if (password.length < 6) {
     throw createError({ statusCode: 400, statusMessage: 'Password must be at least 6 chars' })
   }
+  if (!password.trim()) {
+    throw createError({ statusCode: 400, statusMessage: 'Password cannot be only spaces' })
+  }
+  if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]+$/.test(password)) {
+    throw createError({ statusCode: 400, statusMessage: 'Password contains invalid characters' })
+  }
 
   const existing = await getUserByEmail(email)
   if (existing) {

@@ -25,6 +25,12 @@ export default defineEventHandler(async (event) => {
   if (newPassword.length < 6) {
     throw createError({ statusCode: 400, statusMessage: 'New password must be at least 6 characters' })
   }
+  if (!newPassword.trim()) {
+    throw createError({ statusCode: 400, statusMessage: 'Password cannot be only spaces' })
+  }
+  if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]+$/.test(newPassword)) {
+    throw createError({ statusCode: 400, statusMessage: 'Password contains invalid characters' })
+  }
   if (newPassword !== confirmPassword) {
     throw createError({ statusCode: 400, statusMessage: 'Passwords do not match' })
   }

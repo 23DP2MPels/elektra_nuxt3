@@ -394,6 +394,14 @@ async function register() {
     message.value = 'Passwords do not match'
     return
   }
+  if (!registerPassword.value.trim()) {
+    message.value = 'Password cannot be only spaces'
+    return
+  }
+  if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]+$/.test(registerPassword.value)) {
+    message.value = 'Password contains invalid characters'
+    return
+  }
 
   busy.value = true
   message.value = ''
@@ -432,6 +440,14 @@ async function changePassword() {
   }
   if (passwordNew.value.length < 6) {
     passwordMessage.value = 'New password must be at least 6 characters'
+    return
+  }
+  if (!passwordNew.value.trim()) {
+    passwordMessage.value = 'Password cannot be only spaces'
+    return
+  }
+  if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]+$/.test(passwordNew.value)) {
+    passwordMessage.value = 'Password contains invalid characters'
     return
   }
   if (passwordNew.value !== passwordConfirm.value) {

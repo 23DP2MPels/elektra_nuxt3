@@ -13,7 +13,12 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event).catch(() => ({}))
   const productId = String(body?.id || '').trim() || id('prd')
   const name = String(body?.name || '').trim()
+  
+  // ─── THE FIX IS RIGHT HERE ─────────────────────────────────────────
   const categorySlug = String(body?.category_slug || '').trim()
+  const subcategorySlug = String(body?.subcategory_slug || '').trim() // Added this line!
+  // ───────────────────────────────────────────────────────────────────
+  
   const categoryNameRaw = body?.category_name
   const subcategoryNameRaw = body?.subcategory_name
   const imageUrl = String(body?.image_url || '').trim()
@@ -63,7 +68,7 @@ export default defineEventHandler(async (event) => {
         name,
         category_slug: categorySlug,
         category_name: categoryName,
-        subcategory_slug: subcategorySlug,
+        subcategory_slug: subcategorySlug, // Works perfectly now!
         subcategory_name: subcategoryName,
         image_url: imageUrl,
         image_alt: imageAlt || name,
@@ -80,7 +85,7 @@ export default defineEventHandler(async (event) => {
       name,
       category_slug: categorySlug,
       category_name: categoryName,
-      subcategory_slug: subcategorySlug,
+      subcategory_slug: subcategorySlug, // Works perfectly now!
       subcategory_name: subcategoryName,
       image_url: imageUrl,
       image_alt: imageAlt || name,

@@ -144,14 +144,20 @@
             <div class="specs-container">
               <div v-for="(spec, index) in specsList" :key="index" class="spec-row">
                 <input v-model="spec.key" placeholder="Key" class="spec-key-input" />
-                <input v-model="spec.value" placeholder="Value" class="spec-value-input" />
+                <input v-model="spec.value" placeholder="Value" class="spec-value-input" @input="validateSpecValue(spec)" />
+                <select v-model="spec.type" class="spec-type-select">
+                  <option value="string">String</option>
+                  <option value="number">Number</option>
+                  <option value="boolean">Boolean</option>
+                </select>
                 <button type="button" @click="removeSpec(index)" class="spec-remove-btn">×</button>
               </div>
               <button type="button" @click="addSpec" class="spec-add-btn">+ Add spec</button>
+              <p v-if="specValidationError" class="spec-error">{{ specValidationError }}</p>
             </div>
           </div>
           <p>
-            <button type="submit" :disabled="saving">Save product</button>
+            <button type="submit" :disabled="saving || !isSpecsValid">Save product</button>
             <button type="button" @click="resetForm" :disabled="saving">Reset</button>
           </p>
           <p v-if="message" class="message">{{ message }}</p>
@@ -160,11 +166,15 @@
 
       <section class="section-card">
         <h2>Products</h2>
-        <p v-if="products.length === 0">No products available.</p>
+        <div class="search-container">
+          <input v-model="searchQuery" type="search" placeholder="Search products by ID, name, category..." class="search-input" />
+        </div>
+        <p v-if="filteredProducts.length === 0">No products available.</p>
         <div v-else class="products-container">
           <table>
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Image</th>
                 <th>Product</th>
                 <th>Category</th>
@@ -173,7 +183,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="product in products" :key="product.id">
+              <tr v-for="product in filteredProducts" :key="product.id">
+                <td class="product-id-cell">{{ product.id }}</td>
                 <td><img :src="product.image_url || '/img/product_img_placeholder/default.png'" :alt="product.image_alt || product.name" class="product-thumb" @error="onImageError" /></td>
                 <td>{{ product.name }}</td>
                 <td>{{ localLabel(product.category_name) }} ({{ product.category_slug }})</td>
@@ -226,7 +237,9 @@ const useExistingCategory = ref(true)
 const selectedCategorySlug = ref('')
 const initializingPrices = ref(false)
 const initializePricesMessage = ref('')
-const specsList = ref<Array<{ key: string; value: string }>>([])
+const specsList = ref<Array<{ key: string; value: string; type: 'string' | 'boolean' | 'number' }>>([])
+const specValidationError = ref('')
+const searchQuery = ref('')
 const form = reactive({
   id: '',
   name: '',
@@ -270,6 +283,36 @@ const categoryOptions = computed(() => {
 const subcategoryOptions = computed(() => {
   const category = categoriesBySlug.value.get(selectedCategorySlug.value)
   return category?.subcategories ?? []
+})
+
+const isSpecsValid = computed(() => {
+  if (specValidationError.value) return false
+  for (const spec of specsList.value) {
+    if (spec.type === 'number' && spec.value.trim() !== '' && isNaN(parseFloat(spec.value))) {
+      return false
+    }
+    if (spec.type === 'boolean' && spec.value.trim() !== '') {
+      const normalized = spec.value.toLowerCase().trim()
+      if (normalized !== 'true' && normalized !== 'false' && normalized !== '1' && normalized !== '0') {
+        return false
+      }
+    }
+    if (spec.value.includes(',')) {
+      return false
+    }
+  }
+  return true
+})
+
+const filteredProducts = computed(() => {
+  if (!searchQuery.value.trim()) return products.value
+  const query = searchQuery.value.toLowerCase()
+  return products.value.filter(p => 
+    p.id.toLowerCase().includes(query) ||
+    p.name.toLowerCase().includes(query) ||
+    String(p.category_slug).toLowerCase().includes(query) ||
+    String(p.subcategory_slug).toLowerCase().includes(query)
+  )
 })
 
 watch(selectedCategorySlug, (value) => {
@@ -375,7 +418,15 @@ function selectProduct(product: any) {
   // Parse specs_json and populate specsList
   try {
     const specs = JSON.parse(product.specs_json || '{}')
-    specsList.value = Object.entries(specs).map(([key, value]) => ({ key, value: String(value) }))
+    specsList.value = Object.entries(specs).map(([key, value]) => {
+      let type: 'string' | 'boolean' | 'number' = 'string'
+      if (typeof value === 'boolean') {
+        type = 'boolean'
+      } else if (typeof value === 'number') {
+        type = 'number'
+      }
+      return { key, value: String(value), type }
+    })
   } catch {
     specsList.value = []
   }
@@ -399,13 +450,36 @@ function resetForm() {
   form.image_alt = ''
   form.specs_json = '{}'
   specsList.value = []
+  specValidationError.value = ''
   selectedCategorySlug.value = ''
   useExistingCategory.value = categoryOptions.value.length > 0
   message.value = ''
 }
 
 function addSpec() {
-  specsList.value.push({ key: '', value: '' })
+  specsList.value.push({ key: '', value: '', type: 'string' })
+}
+
+function validateSpecValue(spec: { key: string; value: string; type: 'string' | 'boolean' | 'number' }) {
+  if (spec.value.includes(',')) {
+    specValidationError.value = 'Value cannot contain comma (,)'
+    return
+  }
+  
+  if (spec.type === 'number' && spec.value.trim() !== '' && isNaN(parseFloat(spec.value))) {
+    specValidationError.value = 'Number value must be a valid number'
+    return
+  }
+  
+  if (spec.type === 'boolean' && spec.value.trim() !== '') {
+    const normalized = spec.value.toLowerCase().trim()
+    if (normalized !== 'true' && normalized !== 'false' && normalized !== '1' && normalized !== '0') {
+      specValidationError.value = 'Boolean value must be true, false, 1, or 0'
+      return
+    }
+  }
+  
+  specValidationError.value = ''
 }
 
 function removeSpec(index: number) {
@@ -438,10 +512,16 @@ async function saveProduct() {
   )
   
   // Build specs object from specsList
-  const specsObj: Record<string, string> = {}
+  const specsObj: Record<string, string | number | boolean> = {}
   specsList.value.forEach(spec => {
     if (spec.key.trim()) {
-      specsObj[spec.key.trim()] = spec.value
+      let value: string | number | boolean = spec.value
+      if (spec.type === 'number') {
+        value = parseFloat(spec.value) || 0
+      } else if (spec.type === 'boolean') {
+        value = spec.value.toLowerCase() === 'true' || spec.value === '1'
+      }
+      specsObj[spec.key.trim()] = value
     }
   })
   const specsJson = JSON.stringify(specsObj)
@@ -651,7 +731,8 @@ button {
   }
 
   .spec-key-input,
-  .spec-value-input {
+  .spec-value-input,
+  .spec-type-select {
     flex: 1;
     padding: 0.6rem 0.8rem;
     border-radius: 0.5rem;
@@ -662,6 +743,10 @@ button {
 
   .spec-key-input {
     max-width: 200px;
+  }
+
+  .spec-type-select {
+    max-width: 120px;
   }
 
   .spec-remove-btn {
@@ -696,6 +781,25 @@ button {
 
   .spec-add-btn:hover {
     background: #2563eb;
+  }
+
+  .spec-error {
+    color: #ef4444;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+
+  .search-container {
+    margin-bottom: 1rem;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #d5dde8;
+    background: #f8faff;
+    font-size: 1rem;
   }
 
   .products-container {
@@ -741,6 +845,16 @@ button {
   height: 50px;
   object-fit: cover;
   border-radius: 4px;
+}
+
+.product-id-cell {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #64748b;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .network-error {

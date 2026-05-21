@@ -45,7 +45,7 @@
               <input v-model="form.id" placeholder="leave empty to generate new" />
             </div>
             <div class="form-field">
-              <label>Name</label>
+              <label>Name *</label>
               <input v-model="form.name" required />
             </div>
           </div>
@@ -67,7 +67,7 @@
           <template v-if="useExistingCategory.value">
             <div class="form-row">
               <div class="form-field">
-                <label>Category</label>
+                <label>Category *</label>
                 <select v-model="selectedCategorySlug.value" required>
                   <option value="" disabled>Select category</option>
                   <option v-for="cat in categoryOptions" :key="cat.category_slug" :value="cat.category_slug">
@@ -76,7 +76,7 @@
                 </select>
               </div>
               <div class="form-field">
-                <label>Subcategory</label>
+                <label>Subcategory *</label>
                 <select v-model="form.subcategory_slug" required>
                   <option value="" disabled>Select subcategory</option>
                   <option v-for="sub in subcategoryOptions" :key="sub.subcategory_slug" :value="sub.subcategory_slug">
@@ -104,11 +104,11 @@
           <template v-else>
             <div class="form-row">
               <div class="form-field">
-                <label>Category slug</label>
+                <label>Category slug *</label>
                 <input v-model="form.category_slug" required />
               </div>
               <div class="form-field">
-                <label>Category name (EN)</label>
+                <label>Category name (EN) *</label>
                 <input v-model="form.category_name_en" required />
               </div>
               <div class="form-field">
@@ -122,11 +122,11 @@
             </div>
             <div class="form-row">
               <div class="form-field">
-                <label>Subcategory slug</label>
+                <label>Subcategory slug *</label>
                 <input v-model="form.subcategory_slug" required />
               </div>
               <div class="form-field">
-                <label>Subcategory name (EN)</label>
+                <label>Subcategory name (EN) *</label>
                 <input v-model="form.subcategory_name_en" required />
               </div>
               <div class="form-field">

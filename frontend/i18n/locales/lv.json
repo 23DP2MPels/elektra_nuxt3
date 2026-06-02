@@ -68,6 +68,11 @@
     "loading": "Kategoriju ielāde...",
     "products": "preces"
   },
+  "carousel": {
+    "title": "Dienas preces",
+    "from": "no",
+    "to": "līdz"
+  },
   "search": {
     "nav": {
       "home": "Sākums",

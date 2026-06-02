@@ -68,6 +68,11 @@
     "loading": "Loading categories...",
     "products": "products"
   },
+  "carousel": {
+    "title": "Products of the Day",
+    "from": "from",
+    "to": "to"
+  },
   "search": {
     "nav": {
       "home": "Home",

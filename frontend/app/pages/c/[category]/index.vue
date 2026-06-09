@@ -135,7 +135,7 @@ watchEffect(() => {
 
 .subcategory-card {
   background: #fff;
-  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
   box-shadow: 0 10px 30px rgba(33, 77, 124, 0.06);
   transition: all 0.3s ease;
   overflow: hidden;

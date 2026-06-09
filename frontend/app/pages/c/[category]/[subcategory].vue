@@ -523,7 +523,6 @@ function facetName(key: string): string {
 
 .filters-card {
   background: #fff;
-  border-radius: 1rem;
   border: 1px solid #e2e8f0;
   padding: 1.5rem;
   overflow-y: auto; /* Aktivizē iekšējo ritjoslu filtriem */
@@ -641,7 +640,6 @@ function facetName(key: string): string {
 
 .product-card {
   background: #fff;
-  border-radius: 1rem;
   border: 1px solid #e2e8f0;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
